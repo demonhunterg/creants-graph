@@ -1,0 +1,31 @@
+#!/bin/bash
+
+ps aux | grep -i java | grep -i 'CreantsGraphApplication' > /dev/null
+
+if [ $? -eq 0 ]
+then
+        PID=$(ps aux | grep -i java | grep -i 'CreantsGraphApplication' | awk '{print $2}')
+        echo "CreantsGraphApplication is runing as ProcessID  $PID"
+        echo "Kill $PID y/n : "
+        read ans
+        if [[ $ans = 'y' || $ans = 'Y' ]]
+        then
+                sudo kill -9 $PID
+                if [ $? -eq 0 ]
+                then
+                        echo "Process $PID KILLED !!! "
+                else
+                        echo "Kill $PID FAILED !!!"
+                fi
+        else
+                exit
+        fi
+else
+        cd /_avengers/_repository/test/creants-graph;java -Xms128m -Xmx128m -cp "creants-graph.jar:lib/*" -Dfile.encoding=UTF-8 com.creants.graph.CreantsGraphApplication 1>/dev/null &
+        if [ $? -eq 0 ]
+        then
+                echo "CreantsGraphApplication TOOL START SUCCESSFULLY"
+        else
+                echo "CreantsGraphApplication TOOL START FAILED !!! "
+        fi
+fi
