@@ -16,4 +16,5 @@ public class IdGenerator {
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
 		return sb.toString();
 	}
+	
 }

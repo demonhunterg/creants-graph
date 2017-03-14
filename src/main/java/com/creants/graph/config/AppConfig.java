@@ -27,20 +27,6 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 		return builder.build();
 	}
 
-	@Bean
-	public InternalResourceViewResolver viewResolver() {
-		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
-		resolver.setPrefix("/WEB-INF/");
-		resolver.setSuffix(".jsp");
-
-		// jsp sử dụng kết hợp jstl của javax
-		resolver.setViewClass(JstlView.class);
-		// ở đây có thể dùng các teamplate như Freemarker, Thymeleaf,
-		// Groovy Markup (của Spring),
-
-		return resolver;
-	}
-
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/**");

@@ -86,7 +86,26 @@ public class UserRepository implements IUserRepository {
 		} catch (Exception e) {
 			return null;
 		}
+	}
 
+	@Override
+	public boolean checkExistEmail(String email) {
+		try {
+			int result = jdbcTemplate.queryForObject(
+					"SELECT id AS user_id FROM account WHERE email = ? AND client_id is null", new Object[] { email },
+					new RowMapper<Integer>() {
+
+						@Override
+						public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+							return rs.getInt("user_id");
+						}
+
+					});
+
+			return result > 0;
+		} catch (Exception e) {
+		}
+		return false;
 	}
 
 	public User getUserInfo(String provider, long clientId) {
@@ -163,6 +182,12 @@ public class UserRepository implements IUserRepository {
 	public int updateUserInfo(int userId, String fullName, int gender, String location, String birthday) {
 		return jdbcTemplate.update("call sp_account_update(?, ?, ?, ?, ?)", fullName, gender, location, birthday,
 				userId);
+	}
+
+	// TODO update theo userId
+	public int updatePassword(String email, String newPassword) {
+		return jdbcTemplate.update("update account set password = ? where email = ? AND client_id is null", newPassword,
+				email);
 	}
 
 	@Override

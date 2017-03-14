@@ -19,7 +19,9 @@ public class MessageFactory {
 		Message msg = new Message();
 		msg.setCode(1);
 		msg.setMsg("Thành công");
-		msg.setData(data);
+		if(data != null){
+			msg.setData(data);
+		}
 		return msg;
 	}
 }

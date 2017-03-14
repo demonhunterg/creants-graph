@@ -22,4 +22,8 @@ public interface IUserRepository {
 	int updateUserInfo(int userId, String fullName, int gender, String location, String birthday);
 
 	long incrementUserMoney(int userId, long value);
+
+	boolean checkExistEmail(String email);
+
+	int updatePassword(String email, String newPassword);
 }

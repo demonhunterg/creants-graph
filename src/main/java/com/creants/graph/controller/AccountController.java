@@ -13,6 +13,7 @@ import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,12 +79,7 @@ public class AccountController {
 			@RequestParam(value = "app_id") String appId, @RequestParam(value = "token") String token)
 			throws Exception {
 
-		mailService.sendMail("nhungoc.it07@gmail.com", "test", "Ngừ iu ơi ngừ iu ah");
-		Message message = MessageFactory.createMessage("");
-		message.setToken(token);
-		return message;
-
-		/*try {
+		try {
 			if (provider.equals("fb")) {
 				FacebookClient facebookClient = new DefaultFacebookClient(token, Version.VERSION_2_6);
 				JsonObject user = facebookClient.fetchObject("me", JsonObject.class,
@@ -120,16 +116,65 @@ public class AccountController {
 			return MessageFactory.createErrorMessage(1008, "Token đã hết hạn");
 		}
 
-		return MessageFactory.createErrorMessage(9999, "Lỗi không xác định");*/
+		return MessageFactory.createErrorMessage(9999, "Lỗi không xác định");
 	}
 
-	public void signinFB(@RequestParam(value = "app_id") String appId, HttpServletResponse http)
-			throws RestClientException, URISyntaxException, IOException {
+	@RequestMapping(value = "/recovery", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+	public @ResponseBody Message forgetPassword(@RequestParam(value = "email") String email,
+			@RequestParam(value = "app_id") String appId) {
+		boolean isExistEmail = userRepository.checkExistEmail(email);
+		if (!isExistEmail)
+			return MessageFactory.createErrorMessage(1004, "Không tồn tại email này trên hệ thống");
 
-		String redirectUrl = hostName + "/user/signin/fb/verify?app_id=" + appId;
-		http.sendRedirect("http://www.facebook.com/dialog/oauth?" + "client_id=" + FB_APP_ID + "&redirect_uri="
-				+ URLEncoder.encode(redirectUrl, "UTF-8") + "&scope=email");
+		String verifyCode = IdGenerator.randomString(6);
+		cacheService.upsert("VERIFY_CODE_" + verifyCode, 600, email.trim());
+		StringBuilder sb = new StringBuilder();
+		sb.append("Dear player of Creants,");
+		sb.append("\n\n");
+		sb.append("We've set a temporary password so you can login to Creants and get back to the tables!");
+		sb.append("\n");
+		sb.append("Use this verify code to reset password: " + verifyCode);
+		sb.append("\n");
+		sb.append("Once you're back, you'll be able to reset your password.");
+		sb.append("\n\n");
+		sb.append("Best, \n The Creants Team.");
 
+		mailService.sendMail(email, "Creants Graph Temporary Password", sb.toString());
+		Map<String, Object> data = new HashMap<>();
+		data.put("verify_code", verifyCode);
+		data.put("ttl_second", 600);
+		return MessageFactory.createMessage(data);
+	}
+
+	@RequestMapping(value = "/recovery/verify", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+	public @ResponseBody Message recoveryVerify(@RequestParam(value = "verify_code") String code) {
+		String email = cacheService.get("VERIFY_CODE_" + code.trim());
+		if (email == null) {
+			return MessageFactory.createErrorMessage(1005, "Mã xác nhận đã hết hiệu lực");
+		}
+
+		return MessageFactory.createMessage(null);
+	}
+
+	@RequestMapping(value = "/recovery/reset", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+	public @ResponseBody Message resetPassword(@RequestParam(value = "verify_code") String code,
+			@RequestParam(value = "password") String password) {
+		String email = cacheService.get("VERIFY_CODE_" + code.trim());
+		if (email == null) {
+			return MessageFactory.createErrorMessage(1004, "Mã xác nhận đã hết hiệu lực");
+		}
+
+		password = password.trim();
+		if (password.length() < 3) {
+			return MessageFactory.createErrorMessage(1002, "Password phải từ 3-18 ký tự");
+		}
+
+		int result = userRepository.updatePassword(email, password);
+		if (result < 1) {
+			return MessageFactory.createErrorMessage(1009, "Cập nhật thất bại");
+		}
+
+		return MessageFactory.createMessage(null);
 	}
 
 	@RequestMapping(value = "/signin/fb/verify", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
@@ -273,13 +318,6 @@ public class AccountController {
 		return signInWithCustom(username, password, appId);
 	}
 
-	private boolean isValidEmailId(String email) {
-		String emailPattern = "\\b[\\w.%-]+@[-.\\w]+\\.[A-Za-z]{2,4}\\b";
-		Pattern p = Pattern.compile(emailPattern);
-		Matcher m = p.matcher(email);
-		return m.matches();
-	}
-
 	@RequestMapping(path = "get", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message getUserInfo(@RequestParam(value = "user_id") int userId) {
 		User user = userRepository.getUserInfo(userId);
@@ -303,6 +341,22 @@ public class AccountController {
 		}
 
 		return MessageFactory.createMessage(null);
+	}
+
+	private void signinFB(@RequestParam(value = "app_id") String appId, HttpServletResponse http)
+			throws RestClientException, URISyntaxException, IOException {
+
+		String redirectUrl = hostName + "/user/signin/fb/verify?app_id=" + appId;
+		http.sendRedirect("http://www.facebook.com/dialog/oauth?" + "client_id=" + FB_APP_ID + "&redirect_uri="
+				+ URLEncoder.encode(redirectUrl, "UTF-8") + "&scope=email");
+
+	}
+
+	private boolean isValidEmailId(String email) {
+		String emailPattern = "\\b[\\w.%-]+@[-.\\w]+\\.[A-Za-z]{2,4}\\b";
+		Pattern p = Pattern.compile(emailPattern);
+		Matcher m = p.matcher(email);
+		return m.matches();
 	}
 
 }

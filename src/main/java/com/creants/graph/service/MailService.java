@@ -25,6 +25,7 @@ public class MailService {
 	 */
 	public void sendMail(String to, String subject, String body) {
 		SimpleMailMessage message = new SimpleMailMessage();
+		message.setFrom("hamalajava@gmail.com");
 		message.setTo(to);
 		message.setSubject(subject);
 		message.setText(body);
