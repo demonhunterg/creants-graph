@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import com.creants.graph.exception.CreantsException;
 import com.creants.graph.om.User;
+import com.creants.graph.util.Tracer;
 
 /**
  * @author LamHa
@@ -94,20 +95,20 @@ public class UserRepository implements IUserRepository {
 			int result = jdbcTemplate.queryForObject(
 					"SELECT id AS user_id FROM account WHERE email = ? AND client_id is null", new Object[] { email },
 					new RowMapper<Integer>() {
-
 						@Override
 						public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
 							return rs.getInt("user_id");
 						}
-
 					});
-
 			return result > 0;
 		} catch (Exception e) {
+			Tracer.error(this.getClass(), "[ERROR] checkExistEmail fail! email: " + email, Tracer.getTraceMessage(e));
 		}
+
 		return false;
 	}
 
+	@Override
 	public User getUserInfo(String provider, long clientId) {
 		try {
 			return jdbcTemplate.queryForObject("call sp_account_oauth(?,?)", new Object[] { provider, clientId },
@@ -124,7 +125,8 @@ public class UserRepository implements IUserRepository {
 						}
 					});
 		} catch (Exception e) {
-			e.printStackTrace();
+			Tracer.error(this.getClass(), "[ERROR] getUserInfo fail! provider: " + provider + ", clientId: " + clientId,
+					Tracer.getTraceMessage(e));
 		}
 
 		return null;
@@ -148,7 +150,6 @@ public class UserRepository implements IUserRepository {
 						user.setId(rs.getInt("id"));
 					}
 				});
-
 	}
 
 	@Override

@@ -1,23 +1,27 @@
 package com.creants.graph.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author LamHa
  *
  */
 public class Tracer {
-	private static final Logger CREANTS_LOG = LoggerFactory.getLogger("CreantsLogger");
+	private static final Logger TRACE_LOG = LogManager.getLogger("TraceLogger");
+	private static final Logger ERROR_LOG = LogManager.getLogger("ErrorLogger");
 
 	public static void debug(Class<?> clazz, Object... msgs) {
-		if (CREANTS_LOG.isDebugEnabled()) {
-			CREANTS_LOG.debug(getTraceMessage(clazz, msgs));
+		if (TRACE_LOG.isDebugEnabled()) {
+			TRACE_LOG.debug(getTraceMessage(clazz, msgs));
 		}
+
 	}
 
 	public static void info(Class<?> clazz, Object... msgs) {
-		CREANTS_LOG.info(getTraceMessage(clazz, msgs));
+		TRACE_LOG.info(getTraceMessage(clazz, msgs));
 	}
 
 	/**
@@ -29,7 +33,7 @@ public class Tracer {
 	 *            thông tin kèm theo lỗi - nên kèm theo tên hàm
 	 */
 	public static void error(Class<?> clazz, Object... msgs) {
-		CREANTS_LOG.error(getTraceMessage(clazz, msgs));
+		ERROR_LOG.error(getTraceMessage(clazz, msgs));
 	}
 
 	/**
@@ -41,7 +45,7 @@ public class Tracer {
 	 *            thông tin kèm theo lỗi - nên kèm theo tên hàm
 	 */
 	public static void warn(Class<?> clazz, Object... msgs) {
-		CREANTS_LOG.warn(getTraceMessage(clazz, msgs));
+		TRACE_LOG.warn(getTraceMessage(clazz, msgs));
 	}
 
 	private static String getTraceMessage(Class<?> clazz, Object[] msgs) {
@@ -53,5 +57,11 @@ public class Tracer {
 		}
 
 		return traceMsg.toString();
+	}
+
+	public static String getTraceMessage(Exception throwable) {
+		StringWriter stringWriter = new StringWriter();
+		throwable.printStackTrace(new PrintWriter(stringWriter));
+		return "\n" + stringWriter.toString();
 	}
 }

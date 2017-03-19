@@ -1,24 +1,15 @@
 package com.creants.graph.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,8 +30,10 @@ import com.creants.graph.om.User;
 import com.creants.graph.service.CacheService;
 import com.creants.graph.service.MailService;
 import com.creants.graph.service.MessageFactory;
+import com.creants.graph.util.ErrorCode;
 import com.creants.graph.util.IdGenerator;
 import com.creants.graph.util.Security;
+import com.creants.graph.util.Tracer;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.Parameter;
@@ -55,9 +48,15 @@ import com.restfb.json.JsonObject;
 @RestController
 @RequestMapping("/user")
 public class AccountController {
-	private static final String GOOGLE_REDIRECT_URI = "http://localhost:8080/user/signin/google";
-	private static final String FB_APP_ID = "758402830930110";
-	private static final String FB_APP_SECRET = "0fd676859f0a66fa199eccfe3ba429f1";
+	private static final int UID_LENGHT = 28;
+	@Value("${server.domain}")
+	private String hostName;
+
+	@Value("${fb.app.id}")
+	private String fbAppId;
+
+	@Value("${fb.app.secret}")
+	private String fbAppSecret;
 
 	@Autowired
 	private IUserRepository userRepository;
@@ -71,60 +70,56 @@ public class AccountController {
 	@Autowired
 	private MailService mailService;
 
-	@Value("${server.domain}")
-	private String hostName;
-
 	@RequestMapping(value = "/oauth", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message oauth(@RequestParam(value = "provider") String provider,
 			@RequestParam(value = "app_id") String appId, @RequestParam(value = "token") String token)
 			throws Exception {
-
 		try {
-			if (provider.equals("fb")) {
-				FacebookClient facebookClient = new DefaultFacebookClient(token, Version.VERSION_2_6);
-				JsonObject user = facebookClient.fetchObject("me", JsonObject.class,
-						Parameter.with("fields", "name,id,email,birthday"));
-				long clientId = user.getLong("id");
-
-				User userInfo = userRepository.getUserInfo(provider, clientId);
-				if (userInfo == null) {
-					JsonObject picture = facebookClient.fetchObject("/me/picture", JsonObject.class,
-							Parameter.with("type", "large"), Parameter.with("redirect", "false"));
-
-					JsonObject data = picture.getJsonObject("data");
-
-					String key = IdGenerator.randomString(28);
-					userInfo = new User();
-					userInfo.setUid(key);
-					userInfo.setAvatar(data.getString("url"));
-					userInfo.setFullName(user.getString("name"));
-					userRepository.insertUser(userInfo, provider, clientId, user.getString("email"));
-				}
-
-				String newToken = JWT.create().withIssuer("auth0").withClaim("id", userInfo.getId())
-						.sign(Algorithm.HMAC256("secret"));
-				cacheService.login(newToken, newToken);
-				Map<String, Object> data = new HashMap<>();
-				data.put("user", userInfo);
-
-				Message message = MessageFactory.createMessage(data);
-				message.setToken(token);
-				return message;
-			} else if (provider.equals("gg")) {
+			if (!provider.equals("fb")) {
+				return MessageFactory.createErrorMessage(9999, "Lỗi không xác định");
 			}
+
+			FacebookClient facebookClient = new DefaultFacebookClient(token, Version.VERSION_2_6);
+			JsonObject user = facebookClient.fetchObject("me", JsonObject.class,
+					Parameter.with("fields", "name,id,email,birthday"));
+
+			long clientId = user.getLong("id");
+			User userInfo = userRepository.getUserInfo(provider, clientId);
+			if (userInfo == null) {
+				JsonObject picture = facebookClient.fetchObject("/me/picture", JsonObject.class,
+						Parameter.with("type", "large"), Parameter.with("redirect", "false"));
+
+				JsonObject data = picture.getJsonObject("data");
+				String key = IdGenerator.randomString(UID_LENGHT);
+				userInfo = new User();
+				userInfo.setUid(key);
+				userInfo.setAvatar(data.getString("url"));
+				userInfo.setFullName(user.getString("name"));
+				userRepository.insertUser(userInfo, provider, clientId, user.getString("email"));
+			}
+
+			String newToken = JWT.create().withIssuer("auth0").withClaim("id", userInfo.getId())
+					.sign(Algorithm.HMAC256("secret"));
+			cacheService.login(newToken, newToken);
+
+			Map<String, Object> data = new HashMap<>();
+			data.put("user", userInfo);
+
+			Message message = MessageFactory.createMessage(data);
+			message.setToken(token);
+			return message;
+
 		} catch (FacebookOAuthException e) {
 			return MessageFactory.createErrorMessage(1008, "Token đã hết hạn");
 		}
-
-		return MessageFactory.createErrorMessage(9999, "Lỗi không xác định");
 	}
 
-	@RequestMapping(value = "/recovery", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
+	@RequestMapping(value = "/recovery", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message forgetPassword(@RequestParam(value = "email") String email,
 			@RequestParam(value = "app_id") String appId) {
 		boolean isExistEmail = userRepository.checkExistEmail(email);
 		if (!isExistEmail)
-			return MessageFactory.createErrorMessage(1004, "Không tồn tại email này trên hệ thống");
+			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "Không tồn tại email này trên hệ thống");
 
 		String verifyCode = IdGenerator.randomString(6);
 		cacheService.upsert("VERIFY_CODE_" + verifyCode, 600, email.trim());
@@ -161,17 +156,17 @@ public class AccountController {
 			@RequestParam(value = "password") String password) {
 		String email = cacheService.get("VERIFY_CODE_" + code.trim());
 		if (email == null) {
-			return MessageFactory.createErrorMessage(1004, "Mã xác nhận đã hết hiệu lực");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_VERIFY_CODE, "Mã xác nhận đã hết hiệu lực");
 		}
 
 		password = password.trim();
 		if (password.length() < 3) {
-			return MessageFactory.createErrorMessage(1002, "Password phải từ 3-18 ký tự");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD, "Password phải từ 3-18 ký tự");
 		}
 
 		int result = userRepository.updatePassword(email, password);
 		if (result < 1) {
-			return MessageFactory.createErrorMessage(1009, "Cập nhật thất bại");
+			return MessageFactory.createErrorMessage(ErrorCode.UPDATE_FAIL, "Cập nhật thất bại");
 		}
 
 		return MessageFactory.createMessage(null);
@@ -183,8 +178,8 @@ public class AccountController {
 			throws UnsupportedEncodingException, RestClientException, URISyntaxException {
 
 		String redirectUrl = hostName + "/user/signin/fb/verify?app_id=" + appId;
-		URI url = new URI("https://graph.facebook.com/oauth/access_token?" + "client_id=" + FB_APP_ID + "&redirect_uri="
-				+ URLEncoder.encode(redirectUrl, "UTF-8") + "&client_secret=" + FB_APP_SECRET + "&code=" + code);
+		URI url = new URI("https://graph.facebook.com/oauth/access_token?" + "client_id=" + fbAppId + "&redirect_uri="
+				+ URLEncoder.encode(redirectUrl, "UTF-8") + "&client_secret=" + fbAppId + "&code=" + code);
 
 		String forObject = restTemplate.getForObject(url, String.class);
 
@@ -196,59 +191,12 @@ public class AccountController {
 		return fetchObject.toString();
 	}
 
-	@RequestMapping(value = "/signin/google", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-	public String signinGoogle(@RequestParam(value = "code", required = false) String code,
-			@RequestParam(value = "google_app_id", required = false) String googleAppId,
-			@RequestParam(value = "google_app_secret", required = false) String googleAppSecret) throws Exception {
-
-		String redirectUri = URLEncoder.encode(
-				GOOGLE_REDIRECT_URI + "?google_app_id=" + googleAppId + "&google_app_secret=" + googleAppSecret,
-				"UTF-8");
-
-		if (code == null) {
-			return "redirect:https://accounts.google.com/o/oauth2/auth?" + "client_id=" + googleAppId + "&redirect_uri="
-					+ redirectUri + "&scope=email&response_type=code";
-		}
-
-		String urlParameters = "code=" + code + "&client_id=" + googleAppId + "&client_secret=" + googleAppSecret
-				+ "&redirect_uri=" + redirectUri + "&grant_type=authorization_code";
-
-		URL url = new URL("https://accounts.google.com/o/oauth2/token");
-		URLConnection urlConn = url.openConnection();
-		urlConn.setDoOutput(true);
-		OutputStreamWriter writer = new OutputStreamWriter(urlConn.getOutputStream());
-		writer.write(urlParameters);
-		writer.flush();
-		writer.close();
-
-		String outputString = "";
-		BufferedReader reader = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-		String line;
-		while ((line = reader.readLine()) != null) {
-			outputString += line;
-		}
-		reader.close();
-
-		JsonObject jo = new JsonObject(outputString);
-		url = new URL("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + jo.getString("access_token"));
-		urlConn = url.openConnection();
-		outputString = "";
-		reader = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-		line = "";
-		while ((line = reader.readLine()) != null) {
-			outputString += line;
-		}
-		reader.close();
-		return "login";
-	}
-
 	@RequestMapping(path = "signin", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message signInWithCustom(@RequestParam(value = "username") String username,
 			@RequestParam(value = "password") String password, @RequestParam(value = "app_id") int appId) {
-
 		User user = userRepository.login(username, password);
 		if (user == null) {
-			return MessageFactory.createErrorMessage(1000, "User not found");
+			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 		}
 
 		try {
@@ -263,10 +211,11 @@ public class AccountController {
 
 			return message;
 		} catch (Exception e) {
-			e.printStackTrace();
+			Tracer.error(this.getClass(), "[ERROR] signInWithCustom fail! username:" + username + ", appId: " + appId,
+					Tracer.getTraceMessage(e));
 		}
 
-		return MessageFactory.createErrorMessage(1000, "User not found");
+		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 	}
 
 	@RequestMapping(path = "signout", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
@@ -275,10 +224,10 @@ public class AccountController {
 			cacheService.delete(Security.encryptMD5(token));
 			return MessageFactory.createMessage(null);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			Tracer.error(this.getClass(), "[ERROR] signout fail! token:" + token, Tracer.getTraceMessage(e));
 		}
 
-		return MessageFactory.createErrorMessage(1000, "User not found");
+		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 	}
 
 	@RequestMapping(path = "signup", method = RequestMethod.POST, produces = "application/json; charset=UTF-8")
@@ -288,15 +237,15 @@ public class AccountController {
 
 		username = username.trim();
 		if (username.length() < 6) {
-			return MessageFactory.createErrorMessage(1001, "Tên tài khoản phải từ 6-18 ký tự");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_USERNAME, "Tên tài khoản phải từ 6-18 ký tự");
 		}
 
 		if (password.length() < 3) {
-			return MessageFactory.createErrorMessage(1002, "Password phải từ 3-18 ký tự");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD, "Password phải từ 3-18 ký tự");
 		}
 
 		if (email != null && email.length() > 0 && !isValidEmailId(email)) {
-			return MessageFactory.createErrorMessage(1003, "Email không hợp lệ");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_EMAIL, "Email không hợp lệ");
 		}
 
 		String key = IdGenerator.randomString(28);
@@ -322,7 +271,7 @@ public class AccountController {
 	public @ResponseBody Message getUserInfo(@RequestParam(value = "user_id") int userId) {
 		User user = userRepository.getUserInfo(userId);
 		if (user == null) {
-			return MessageFactory.createErrorMessage(1004, "Không tìm thấy user này");
+			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "Không tìm thấy user này");
 		}
 
 		return MessageFactory.createMessage(user);
@@ -337,19 +286,10 @@ public class AccountController {
 
 		int result = userRepository.updateUserInfo(16, fullName, gender, location, birthday);
 		if (result != 1) {
-			return MessageFactory.createErrorMessage(1009, "Cập nhật thông tin thất bại");
+			return MessageFactory.createErrorMessage(ErrorCode.UPDATE_FAIL, "Cập nhật thông tin thất bại");
 		}
 
 		return MessageFactory.createMessage(null);
-	}
-
-	private void signinFB(@RequestParam(value = "app_id") String appId, HttpServletResponse http)
-			throws RestClientException, URISyntaxException, IOException {
-
-		String redirectUrl = hostName + "/user/signin/fb/verify?app_id=" + appId;
-		http.sendRedirect("http://www.facebook.com/dialog/oauth?" + "client_id=" + FB_APP_ID + "&redirect_uri="
-				+ URLEncoder.encode(redirectUrl, "UTF-8") + "&scope=email");
-
 	}
 
 	private boolean isValidEmailId(String email) {

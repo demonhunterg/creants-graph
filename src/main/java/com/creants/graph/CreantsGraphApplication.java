@@ -13,6 +13,7 @@ import com.creants.graph.util.Tracer;
 public class CreantsGraphApplication {
 	public static void main(String[] args) {
 		System.setProperty("log4j.configurationFile", "config/log4j2.xml");
+		Tracer.error(CreantsGraphApplication.class, "ERROR");
 		Tracer.debug(CreantsGraphApplication.class, "------------------- FINISH --------------------");
 		SpringApplication.run(CreantsGraphApplication.class, args);
 	}
