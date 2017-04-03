@@ -10,5 +10,7 @@ public class ErrorCode {
 	public static final int INVALID_PASSWORD = 1002;
 	public static final int INVALID_EMAIL = 1003;
 	public static final int INVALID_VERIFY_CODE = 1004;
+	public static final int VERIFY_CODE_EXPIRED = 1005;
+	public static final int TOKEN_EXPIRED = 1008;
 	public static final int UPDATE_FAIL = 1009;
 }

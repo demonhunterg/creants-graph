@@ -9,9 +9,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import com.creants.graph.CreantsGraphApplication;
-import com.creants.graph.util.Tracer;
-
 /**
  * @author LamHa
  *

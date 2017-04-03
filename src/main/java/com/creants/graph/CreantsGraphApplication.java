@@ -3,8 +3,6 @@ package com.creants.graph;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.creants.graph.util.Tracer;
-
 /**
  * @author LamHa
  *
@@ -13,8 +11,6 @@ import com.creants.graph.util.Tracer;
 public class CreantsGraphApplication {
 	public static void main(String[] args) {
 		System.setProperty("log4j.configurationFile", "config/log4j2.xml");
-		Tracer.error(CreantsGraphApplication.class, "ERROR");
-		Tracer.debug(CreantsGraphApplication.class, "------------------- FINISH --------------------");
 		SpringApplication.run(CreantsGraphApplication.class, args);
 	}
 }

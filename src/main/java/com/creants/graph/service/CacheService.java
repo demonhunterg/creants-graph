@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +16,7 @@ import com.couchbase.client.java.document.RawJsonDocument;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.creants.graph.util.Security;
+import com.creants.graph.util.Tracer;
 
 import rx.Observable;
 import rx.functions.Func1;
@@ -28,7 +27,6 @@ import rx.functions.Func1;
  */
 @Service
 public class CacheService implements InitializingBean {
-	private static final Logger LOG = LoggerFactory.getLogger(CacheService.class);
 	private Cluster cluster;
 	private Bucket bucket;
 
@@ -44,7 +42,7 @@ public class CacheService implements InitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		try {
-			LOG.info("---------------- Start CacheService -----------");
+			Tracer.info(this.getClass(), "---------------- Start CacheService -----------");
 			CouchbaseEnvironment env = DefaultCouchbaseEnvironment.builder()
 					.connectTimeout((int) TimeUnit.SECONDS.toMillis(45)).kvTimeout(TimeUnit.SECONDS.toMillis(60))
 					.computationPoolSize(3).ioPoolSize(3).build();
@@ -52,12 +50,12 @@ public class CacheService implements InitializingBean {
 			cluster = CouchbaseCluster.create(env, couchbaseHosts);
 			bucket = cluster.openBucket(couchbaseBucket, couchbasePass);
 			if (bucket == null) {
-				LOG.error("[ERROR] Cache service can't get bucket");
+				Tracer.error(this.getClass(), "[ERROR] Cache service can't get bucket");
 			}
 
-			LOG.info("---------------- CacheService Started -----------");
+			Tracer.info(this.getClass(), "---------------- CacheService Started -----------");
 		} catch (Exception e) {
-			LOG.error(e.getMessage(), e);
+			Tracer.error(this.getClass(), "Init CacheService fail!", Tracer.getTraceMessage(e));
 		}
 
 	}
@@ -70,10 +68,9 @@ public class CacheService implements InitializingBean {
 		String encryptMD5 = null;
 		try {
 			encryptMD5 = Security.encryptMD5(token);
-			upsert(encryptMD5, data);
+			upsert(encryptMD5, 3600, data);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			LOG.error("[ERROR] login fail! token:" + encryptMD5, e);
+			Tracer.error(this.getClass(), "login fail! token:" + encryptMD5, Tracer.getTraceMessage(e));
 		}
 	}
 
@@ -82,16 +79,22 @@ public class CacheService implements InitializingBean {
 	}
 
 	public String get(String key) {
-		RawJsonDocument json = bucket.get(key, RawJsonDocument.class);
-		if (json != null) {
-			return json.content();
+		try {
+			RawJsonDocument json = bucket.get(key, RawJsonDocument.class);
+			if (json != null) {
+				return json.content();
+			}
+		} catch (Exception e) {
 		}
 
 		return null;
 	}
 
 	public void delete(String key) {
-		bucket.remove(key);
+		try {
+			bucket.remove(key);
+		} catch (Exception e) {
+		}
 	}
 
 	public List<RawJsonDocument> getBulk(final Collection<String> keys) {
@@ -104,7 +107,7 @@ public class CacheService implements InitializingBean {
 	}
 
 	public void shutdown() {
-		LOG.info("Destroy extension - Shutdown Couchbase");
+		Tracer.info(this.getClass(), "Destroy extension - Shutdown Couchbase");
 		if (cluster != null) {
 			bucket.close();
 			cluster.disconnect();

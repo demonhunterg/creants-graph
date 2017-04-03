@@ -20,6 +20,8 @@ public class User implements IUser {
 	private String birthday;
 	private long money;
 	private String email;
+	@JsonIgnore
+	private String deviceId;
 
 	public User() {
 		location = "vn";
@@ -111,6 +113,14 @@ public class User implements IUser {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
 	}
 
 }

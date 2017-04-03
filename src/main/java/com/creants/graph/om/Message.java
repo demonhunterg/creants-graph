@@ -16,6 +16,8 @@ public class Message extends PropertyNamingStrategy {
 	private String msg;
 	@JsonInclude(Include.NON_NULL)
 	private String token;
+	@JsonInclude(Include.NON_NULL)
+	private String privateKey;
 
 	public int getCode() {
 		return code;
@@ -51,6 +53,14 @@ public class Message extends PropertyNamingStrategy {
 
 	public void setToken(String token) {
 		this.token = token;
+	}
+
+	public String getPrivateKey() {
+		return privateKey;
+	}
+
+	public void setPrivateKey(String privateKey) {
+		this.privateKey = privateKey;
 	}
 
 }

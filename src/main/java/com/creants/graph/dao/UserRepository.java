@@ -6,6 +6,7 @@ import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -69,6 +70,27 @@ public class UserRepository implements IUserRepository {
 	}
 
 	@Override
+	public User loginByGuest(String deviceId) {
+		try {
+			return jdbcTemplate.queryForObject("call sp_guest_login(?)", new Object[] { deviceId },
+					new RowMapper<User>() {
+						public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+							User user = new User();
+							user.setId(rs.getInt("id"));
+							user.setUid(rs.getString("user_id"));
+							user.setAvatar(rs.getString("avatar"));
+							user.setFullName(rs.getString("full_name"));
+							user.setMoney(rs.getLong("money"));
+							return user;
+						}
+
+					});
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	@Override
 	public User getUserInfo(int userId) {
 		try {
 			return jdbcTemplate.queryForObject("call sp_account_get_by_id(?)", new Object[] { userId },
@@ -84,7 +106,7 @@ public class UserRepository implements IUserRepository {
 							return user;
 						}
 					});
-		} catch (Exception e) {
+		} catch (EmptyResultDataAccessException e) {
 			return null;
 		}
 	}
@@ -124,12 +146,11 @@ public class UserRepository implements IUserRepository {
 							return user;
 						}
 					});
-		} catch (Exception e) {
+		} catch (EmptyResultDataAccessException e) {
 			Tracer.error(this.getClass(), "[ERROR] getUserInfo fail! provider: " + provider + ", clientId: " + clientId,
 					Tracer.getTraceMessage(e));
+			return null;
 		}
-
-		return null;
 
 	}
 
@@ -153,11 +174,30 @@ public class UserRepository implements IUserRepository {
 	}
 
 	@Override
-	public void insertUser(final User user, String provider, long clientId, String email) {
+	public void insertGuest(final User user) throws Exception {
+		jdbcTemplate.query(
+				"call sp_guest_create(?, ?, ?, ?)", new Object[] { user.getUid(), user.getFullName(),
+						avatars[new Random().nextInt(avatars.length - 1)], user.getDeviceId() },
+				new RowCallbackHandler() {
+					@Override
+					public void processRow(ResultSet rs) throws SQLException {
+						int result = rs.getInt("result");
+						if (result != 1) {
+							throw new SQLException(new CreantsException(result, rs.getString("msg")));
+						}
+
+						user.setId(rs.getInt("id"));
+						user.setMoney(rs.getLong("money"));
+					}
+				});
+	}
+
+	@Override
+	public void insertUser(final User user, String provider, long clientId) {
 		jdbcTemplate.query("call sp_account_create_social(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 				new Object[] { user.getUid(), user.getUsername(), user.getPassword(), user.getFullName(),
 						user.getAvatar(), user.getGender(), user.getLocation(), user.getBirthday(), provider, clientId,
-						email },
+						user.getEmail() },
 
 				new RowCallbackHandler() {
 					@Override
@@ -189,6 +229,12 @@ public class UserRepository implements IUserRepository {
 	public int updatePassword(String email, String newPassword) {
 		return jdbcTemplate.update("update account set password = ? where email = ? AND client_id is null", newPassword,
 				email);
+	}
+
+	@Override
+	public void linkAccountFb(int userId, User user, long fbClientId) {
+		jdbcTemplate.update("call sp_account_link(?, ?, ?, ?, ?)", userId, user.getFullName(), user.getAvatar(), "fb",
+				fbClientId);
 	}
 
 	@Override

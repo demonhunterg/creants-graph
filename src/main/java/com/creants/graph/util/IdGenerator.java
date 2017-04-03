@@ -7,6 +7,7 @@ import java.security.SecureRandom;
  *
  */
 public class IdGenerator {
+	private static final int UID_LENGHT = 28;
 	private static final String AB = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 	private static final SecureRandom rnd = new SecureRandom();
 
@@ -16,5 +17,9 @@ public class IdGenerator {
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
 		return sb.toString();
 	}
-	
+
+	public static String generateUuid() {
+		return randomString(UID_LENGHT);
+	}
+
 }
