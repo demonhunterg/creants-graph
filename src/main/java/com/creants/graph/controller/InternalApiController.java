@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,7 +26,7 @@ import com.creants.graph.util.Security;
  *
  */
 @RestController()
-@RequestMapping("api")
+@RequestMapping("/internal")
 public class InternalApiController {
 	@Autowired
 	private IUserRepository userRepository;
@@ -33,7 +34,7 @@ public class InternalApiController {
 	@Autowired
 	private CacheService cacheService;
 
-	@RequestMapping(path = "verify", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
+	@PostMapping(path = "verify", produces = "text/plain;charset=UTF-8")
 	public @ResponseBody Message verify(@RequestHeader(value = "key") String key,
 			@RequestParam(value = "token") String token) {
 		try {
@@ -53,7 +54,7 @@ public class InternalApiController {
 		return MessageFactory.createErrorMessage(1000, "User not found");
 	}
 
-	@RequestMapping(path = "user", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
+	@PostMapping(path = "user", produces = "text/plain;charset=UTF-8")
 	public @ResponseBody Message getUserInfo(@RequestHeader(value = "key") String key,
 			@RequestParam(value = "id") int userId) {
 		if (!isValidRequest(key))

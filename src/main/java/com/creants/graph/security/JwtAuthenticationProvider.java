@@ -1,12 +1,11 @@
 package com.creants.graph.security;
 
-import java.util.List;
+import java.util.Collections;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -35,14 +34,13 @@ public class JwtAuthenticationProvider extends AbstractUserDetailsAuthentication
 	@Override
 	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication)
 			throws AuthenticationException {
+
 		System.out.println("retrie user");
 		JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
 		String token = jwtAuthenticationToken.getToken();
-
 		User user = AuthHelper.getUser(token);
 
-		List<GrantedAuthority> authorityList = AuthorityUtils.commaSeparatedStringToAuthorityList("USER");
-		return new AuthenticatedUser(user.getId(), token, authorityList);
+		return new AuthenticatedUser(user.getId(), token, Collections.<GrantedAuthority>emptyList());
 	}
 
 }

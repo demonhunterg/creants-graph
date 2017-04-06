@@ -49,7 +49,7 @@ public class AuthAccountController {
 
 	@PostMapping(value = "fb", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message oauth(@RequestParam(value = "app_id") String appId,
-			@RequestParam(value = "token") String fbToken) throws Exception {
+			@RequestParam(value = "fb_token") String fbToken) throws Exception {
 
 		try {
 			FacebookClient facebookClient = new DefaultFacebookClient(fbToken, Version.VERSION_2_6);
@@ -101,6 +101,7 @@ public class AuthAccountController {
 	 *            định danh duy nhất của thiết bị format: os##imei##appId (exp:
 	 *            adr#3234532#1)
 	 * @return
+	 * 
 	 */
 	@RequestMapping(path = "guest", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message signInByGuest(@RequestParam(value = "deviceId") String deviceId) {

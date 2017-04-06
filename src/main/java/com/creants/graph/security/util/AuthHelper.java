@@ -18,8 +18,8 @@ import com.creants.graph.util.Tracer;
 public class AuthHelper {
 	private static final String ISSUER = "auth0";
 	private static final String SIGNING_KEY = "LongAndHardTofdfithSpecialCharacters@^($%*$%";
-	// expire trong 1 ngày
-	private static final int TTL_MILI = 3600000;
+	// expire trong 10 ngày
+	private static final int TTL_MILI = 864000000;
 
 	public static String createSignToken(int userId) {
 		String token;

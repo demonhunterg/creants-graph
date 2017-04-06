@@ -11,7 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.creants.graph.security.JwtAuthenticationEntryPoint;
 import com.creants.graph.security.JwtAuthenticationProvider;
@@ -20,6 +20,7 @@ import com.creants.graph.security.JwtAuthenticationTokenFilter;
 
 /**
  * @author LamHa
+ *         https://gitlab.com/palmapps/jwt-spring-security-demo/blob/master/src/main/java/nl/palmapps/myawesomeproject/security/config/WebSecurityConfig.java
  *
  */
 @EnableWebSecurity
@@ -51,8 +52,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		// JWT dont need CSRF
 		httpSecurity.csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
-				.antMatchers("/oauth/**").permitAll().and()
-				.addFilterBefore(authenticationTokenFilterBean(), BasicAuthenticationFilter.class);
+				.antMatchers("/oauth/**", "/account/**", "/internal/**").permitAll().anyRequest().authenticated();
+		httpSecurity.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
 
 		// disable page caching
 		httpSecurity.headers().cacheControl();
