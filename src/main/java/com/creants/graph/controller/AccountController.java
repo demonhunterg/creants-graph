@@ -16,7 +16,7 @@ import com.creants.graph.dao.IUserRepository;
 import com.creants.graph.exception.CreantsException;
 import com.creants.graph.om.Message;
 import com.creants.graph.om.User;
-import com.creants.graph.security.AuthHelper;
+import com.creants.graph.security.util.AuthHelper;
 import com.creants.graph.service.CacheService;
 import com.creants.graph.service.MessageFactory;
 import com.creants.graph.util.ErrorCode;

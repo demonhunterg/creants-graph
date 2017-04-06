@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import com.creants.graph.om.User;
 import com.creants.graph.security.model.AuthenticatedUser;
+import com.creants.graph.security.model.JwtAuthenticationToken;
+import com.creants.graph.security.util.AuthHelper;
 
 /**
  * @author LamHa

@@ -11,6 +11,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 
+import com.creants.graph.security.model.JwtAuthenticationToken;
+import com.creants.graph.security.util.AuthHelper;
+
 /**
  * @author LamHa
  *         https://www.toptal.com/java/rest-security-with-jwt-spring-security-and-java

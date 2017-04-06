@@ -1,4 +1,4 @@
-package com.creants.graph.security;
+package com.creants.graph.security.model;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 

@@ -1,4 +1,4 @@
-package com.creants.graph.security;
+package com.creants.graph.security.util;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
