@@ -5,7 +5,7 @@ package com.creants.graph.om;
  *
  */
 public interface IUser {
-	String getUid();
+	long getUserId();
 
 	String getFullName();
 

@@ -40,7 +40,7 @@ public class JwtAuthenticationProvider extends AbstractUserDetailsAuthentication
 		String token = jwtAuthenticationToken.getToken();
 		User user = AuthHelper.getUser(token);
 
-		return new AuthenticatedUser(user.getId(), token, Collections.<GrantedAuthority>emptyList());
+		return new AuthenticatedUser(user.getUserId(), token, Collections.<GrantedAuthority>emptyList());
 	}
 
 }

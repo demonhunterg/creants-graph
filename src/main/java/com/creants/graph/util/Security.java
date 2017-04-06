@@ -50,7 +50,7 @@ public class Security {
 		return hashtext;
 	}
 
-	public static String genPrivateKey(String token, int userId) {
+	public static String genPrivateKey(String token, long userId) {
 		try {
 			byte[] baseBin = Base64.encodeBase64((token + userId).getBytes());
 			String encryptMD5 = encryptMD5(baseBin);

@@ -9,11 +9,9 @@ import com.creants.graph.om.User;
 public interface IUserRepository {
 	User login(String username, String password);
 
-	User login(String uid);
-
 	User loginByGuest(String deviceId);
 
-	User getUserInfo(int userId);
+	User getUserInfo(long userId);
 
 	User getUserInfo(String provider, long clientId);
 
@@ -23,14 +21,14 @@ public interface IUserRepository {
 
 	void insertUser(User user, String provider, long clientId);
 
-	int updateUserInfo(int userId, String fullName, int gender, String location, String birthday);
+	int updateUserInfo(long userId, String fullName, int gender, String location, String birthday);
 
-	void linkAccountFb(int userId, User user, long fbClientId);
+	void linkAccountFb(long userId, User user, long fbClientId);
 
-	long incrementUserMoney(int userId, long value);
+	long incrementUserMoney(long userId, long value);
 
 	boolean checkExistEmail(String email);
 
 	int updatePassword(String email, String newPassword);
-	
+
 }

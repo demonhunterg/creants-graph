@@ -21,7 +21,7 @@ public class AuthHelper {
 	// expire trong 10 ngày
 	private static final int TTL_MILI = 864000000;
 
-	public static String createSignToken(int userId) {
+	public static String createSignToken(long userId) {
 		String token;
 		try {
 			token = JWT.create().withIssuer(ISSUER).withExpiresAt(new Date(System.currentTimeMillis() + TTL_MILI))
@@ -33,7 +33,7 @@ public class AuthHelper {
 		return token;
 	}
 
-	public static String createSignToken(int userId, String type, String deviceId) {
+	public static String createSignToken(long userId, String type, String deviceId) {
 		String token;
 		try {
 			token = JWT.create().withIssuer(ISSUER).withExpiresAt(new Date(System.currentTimeMillis() + TTL_MILI))
@@ -57,7 +57,7 @@ public class AuthHelper {
 
 	public static User getUser(String token) {
 		User user = new User();
-		user.setId(JWT.decode(token).getClaim("id").asInt());
+		user.setUserId(JWT.decode(token).getClaim("id").asInt());
 		return user;
 	}
 

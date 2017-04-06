@@ -53,7 +53,7 @@ public class GuestController {
 
 				JsonObject data = picture.getJsonObject("data");
 				userInfo = new User();
-				userInfo.setId(userId);
+				userInfo.setUserId(userId);
 				userInfo.setAvatar(data.getString("url"));
 				userInfo.setFullName(user.getString("name"));
 				userInfo.setEmail(user.getString("email"));

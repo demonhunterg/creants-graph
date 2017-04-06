@@ -7,8 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  *
  */
 public class User implements IUser {
-	private transient int id;
-	private String uid;
+	private long id;
 	private String fullName;
 	@JsonIgnore
 	private String username;
@@ -27,20 +26,12 @@ public class User implements IUser {
 		location = "vn";
 	}
 
-	public int getId() {
+	public long getUserId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setUserId(long id) {
 		this.id = id;
-	}
-
-	public String getUid() {
-		return uid;
-	}
-
-	public void setUid(String uid) {
-		this.uid = uid;
 	}
 
 	public String getFullName() {

@@ -34,23 +34,23 @@ public class UserController {
 	private CacheService cacheService;
 
 	@PostMapping(path = "get", produces = "application/json; charset=UTF-8")
-	public @ResponseBody Message getUserInfo(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
-		User user = userRepository.getUserInfo(authenticatedUser.getUserId());
+	public @ResponseBody Message getUserInfo(@AuthenticationPrincipal AuthenticatedUser authUser) {
+		System.out.println("************** GET USER INFO *****************");
+		User user = userRepository.getUserInfo(authUser.getUserId());
 		if (user == null) {
 			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 		}
 
-		System.out.println("************** GET USER INFO *****************");
 		return MessageFactory.createMessage(user);
 	}
 
 	@PostMapping(path = "update", produces = "application/json; charset=UTF-8")
-	public @ResponseBody Message updateUserInfo(@AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+	public @ResponseBody Message updateUserInfo(@AuthenticationPrincipal AuthenticatedUser authUser,
 			@RequestParam String data) {
 
 		JsonObject jo = JsonObject.fromJson(data);
-		int result = userRepository.updateUserInfo(authenticatedUser.getUserId(), jo.getString("fullname"),
-				jo.getInt("gender"), jo.getString("location"), jo.getString("birthday"));
+		int result = userRepository.updateUserInfo(authUser.getUserId(), jo.getString("fullname"), jo.getInt("gender"),
+				jo.getString("location"), jo.getString("birthday"));
 		if (result != 1) {
 			return MessageFactory.createErrorMessage(ErrorCode.UPDATE_FAIL, "Update fail");
 		}
@@ -59,8 +59,8 @@ public class UserController {
 	}
 
 	@PostMapping(path = "signout", produces = "application/json;charset=UTF-8")
-	public @ResponseBody Message signout(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
-		String token = authenticatedUser.getToken();
+	public @ResponseBody Message signout(@AuthenticationPrincipal AuthenticatedUser authUser) {
+		String token = authUser.getToken();
 		try {
 			cacheService.delete(Security.encryptMD5(token));
 			return MessageFactory.createMessage(null);

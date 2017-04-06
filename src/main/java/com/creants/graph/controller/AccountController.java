@@ -30,9 +30,9 @@ import com.creants.graph.util.IdGenerator;
 @RestController
 @RequestMapping("/account")
 public class AccountController {
+	private static final String VERIFY_CODE_PREFIX = "VERIFY_CODE_";
 	private static final int VERIFY_CODE_SECOND_TTL = 600;
 	private static final int VERIFY_CODE_LENGHT = 6;
-	private static final String VERIFY_CODE_PREFIX = "VERIFY_CODE_";
 
 	@Autowired
 	private MailService mailService;
@@ -65,7 +65,6 @@ public class AccountController {
 
 		try {
 			User user = new User();
-			user.setUid(IdGenerator.generateUuid());
 			user.setUsername(username);
 			user.setPassword(password);
 			user.setFullName(username);

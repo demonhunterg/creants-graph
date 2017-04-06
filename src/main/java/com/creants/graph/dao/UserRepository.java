@@ -39,8 +39,7 @@ public class UserRepository implements IUserRepository {
 						int result = rs.getInt("result");
 						if (result == 1) {
 							User user = new User();
-							user.setId(rs.getInt("user_id"));
-							user.setUid(rs.getString("uid"));
+							user.setUserId(rs.getInt("user_id"));
 							user.setUsername(rs.getString("username"));
 							user.setAvatar(rs.getString("avatar"));
 							user.setFullName(rs.getString("full_name"));
@@ -54,30 +53,13 @@ public class UserRepository implements IUserRepository {
 	}
 
 	@Override
-	public User login(String uid) {
-		return jdbcTemplate.queryForObject("call sp_account_login_uid(?)", new Object[] { uid }, new RowMapper<User>() {
-			public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-				User user = new User();
-				user.setId(rs.getInt("id"));
-				user.setUid(rs.getString("user_id"));
-				user.setUsername(rs.getString("username"));
-				user.setAvatar(rs.getString("avatar"));
-				user.setFullName(rs.getString("full_name"));
-				user.setMoney(rs.getLong("money"));
-				return user;
-			}
-		});
-	}
-
-	@Override
 	public User loginByGuest(String deviceId) {
 		try {
 			return jdbcTemplate.queryForObject("call sp_guest_login(?)", new Object[] { deviceId },
 					new RowMapper<User>() {
 						public User mapRow(ResultSet rs, int rowNum) throws SQLException {
 							User user = new User();
-							user.setId(rs.getInt("id"));
-							user.setUid(rs.getString("user_id"));
+							user.setUserId(rs.getInt("id"));
 							user.setAvatar(rs.getString("avatar"));
 							user.setFullName(rs.getString("full_name"));
 							user.setMoney(rs.getLong("money"));
@@ -91,14 +73,13 @@ public class UserRepository implements IUserRepository {
 	}
 
 	@Override
-	public User getUserInfo(int userId) {
+	public User getUserInfo(long userId) {
 		try {
 			return jdbcTemplate.queryForObject("call sp_account_get_by_id(?)", new Object[] { userId },
 					new RowMapper<User>() {
 						public User mapRow(ResultSet rs, int rowNum) throws SQLException {
 							User user = new User();
-							user.setId(rs.getInt("user_id"));
-							user.setUid(rs.getString("uid"));
+							user.setUserId(rs.getInt("user_id"));
 							user.setUsername(rs.getString("username"));
 							user.setAvatar(rs.getString("avatar"));
 							user.setFullName(rs.getString("full_name"));
@@ -137,8 +118,7 @@ public class UserRepository implements IUserRepository {
 					new RowMapper<User>() {
 						public User mapRow(ResultSet rs, int rowNum) throws SQLException {
 							User user = new User();
-							user.setId(rs.getInt("user_id"));
-							user.setUid(rs.getString("uid"));
+							user.setUserId(rs.getInt("user_id"));
 							user.setAvatar(rs.getString("avatar"));
 							user.setFullName(rs.getString("full_name"));
 							user.setMoney(rs.getLong("money"));
@@ -156,8 +136,8 @@ public class UserRepository implements IUserRepository {
 
 	@Override
 	public void insertUser(final User user) throws Exception {
-		jdbcTemplate.query("call sp_account_create(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-				new Object[] { user.getUid(), user.getUsername(), user.getPassword(), user.getFullName(),
+		jdbcTemplate.query("call sp_account_create(?, ?, ?, ?, ?, ?, ?, ?)",
+				new Object[] { user.getUsername(), user.getPassword(), user.getFullName(),
 						avatars[new Random().nextInt(avatars.length - 1)], user.getGender(), user.getLocation(),
 						user.getBirthday(), user.getEmail() },
 				new RowCallbackHandler() {
@@ -168,7 +148,7 @@ public class UserRepository implements IUserRepository {
 							throw new SQLException(new CreantsException(result, rs.getString("msg")));
 						}
 
-						user.setId(rs.getInt("id"));
+						user.setUserId(rs.getInt("id"));
 					}
 				});
 	}
@@ -176,7 +156,7 @@ public class UserRepository implements IUserRepository {
 	@Override
 	public void insertGuest(final User user) throws Exception {
 		jdbcTemplate.query(
-				"call sp_guest_create(?, ?, ?, ?)", new Object[] { user.getUid(), user.getFullName(),
+				"call sp_guest_create(?, ?, ?)", new Object[] { user.getFullName(),
 						avatars[new Random().nextInt(avatars.length - 1)], user.getDeviceId() },
 				new RowCallbackHandler() {
 					@Override
@@ -186,7 +166,7 @@ public class UserRepository implements IUserRepository {
 							throw new SQLException(new CreantsException(result, rs.getString("msg")));
 						}
 
-						user.setId(rs.getInt("id"));
+						user.setUserId(rs.getInt("id"));
 						user.setMoney(rs.getLong("money"));
 					}
 				});
@@ -194,10 +174,9 @@ public class UserRepository implements IUserRepository {
 
 	@Override
 	public void insertUser(final User user, String provider, long clientId) {
-		jdbcTemplate.query("call sp_account_create_social(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-				new Object[] { user.getUid(), user.getUsername(), user.getPassword(), user.getFullName(),
-						user.getAvatar(), user.getGender(), user.getLocation(), user.getBirthday(), provider, clientId,
-						user.getEmail() },
+		jdbcTemplate.query("call sp_account_create_social(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+				new Object[] { user.getUsername(), user.getPassword(), user.getFullName(), user.getAvatar(),
+						user.getGender(), user.getLocation(), user.getBirthday(), provider, clientId, user.getEmail() },
 
 				new RowCallbackHandler() {
 					@Override
@@ -207,20 +186,20 @@ public class UserRepository implements IUserRepository {
 							throw new SQLException(new CreantsException(result, rs.getString("msg")));
 						}
 
-						user.setId(rs.getInt("id"));
+						user.setUserId(rs.getInt("id"));
 					}
 				});
 
 	}
 
-	public int updateUserInfo(int id, String lastName) {
+	public int updateUserInfo(long userId, String lastName) {
 		return jdbcTemplate.update(
 				"update customer set first_name= COALESCE(?,first_name),last_name = COALESCE(?,last_name) where id = ?",
-				null, lastName, id);
+				null, lastName, userId);
 	}
 
 	@Override
-	public int updateUserInfo(int userId, String fullName, int gender, String location, String birthday) {
+	public int updateUserInfo(long userId, String fullName, int gender, String location, String birthday) {
 		return jdbcTemplate.update("call sp_account_update(?, ?, ?, ?, ?)", fullName, gender, location, birthday,
 				userId);
 	}
@@ -232,13 +211,13 @@ public class UserRepository implements IUserRepository {
 	}
 
 	@Override
-	public void linkAccountFb(int userId, User user, long fbClientId) {
+	public void linkAccountFb(long userId, User user, long fbClientId) {
 		jdbcTemplate.update("call sp_account_link(?, ?, ?, ?, ?)", userId, user.getFullName(), user.getAvatar(), "fb",
 				fbClientId);
 	}
 
 	@Override
-	public long incrementUserMoney(int userId, long value) {
+	public long incrementUserMoney(long userId, long value) {
 		return jdbcTemplate.query("call sp_user_update_money(?,?)", new Object[] { userId, value },
 				new ResultSetExtractor<Long>() {
 

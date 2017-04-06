@@ -18,7 +18,7 @@ public class MessageFactory {
 	public static Message createMessage(Object data) {
 		Message msg = new Message();
 		msg.setCode(1);
-		msg.setMsg("Success");
+		msg.setMsg("success");
 		if (data != null) {
 			msg.setData(data);
 		}

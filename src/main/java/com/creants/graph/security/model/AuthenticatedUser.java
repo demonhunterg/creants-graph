@@ -13,18 +13,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class AuthenticatedUser implements UserDetails {
 	private static final long serialVersionUID = 1L;
-	private final Integer userId;
+	private final Long userId;
 	private final String token;
 	private final Collection<? extends GrantedAuthority> authorities;
 
-	public AuthenticatedUser(Integer userId, String token, Collection<? extends GrantedAuthority> authorities) {
+	public AuthenticatedUser(Long userId, String token, Collection<? extends GrantedAuthority> authorities) {
 		this.userId = userId;
 		this.token = token;
 		this.authorities = authorities;
 	}
 
 	@JsonIgnore
-	public Integer getUserId() {
+	public Long getUserId() {
 		return userId;
 	}
 

@@ -19,7 +19,6 @@ import com.creants.graph.security.util.AuthHelper;
 import com.creants.graph.service.CacheService;
 import com.creants.graph.service.MessageFactory;
 import com.creants.graph.util.ErrorCode;
-import com.creants.graph.util.IdGenerator;
 import com.creants.graph.util.Security;
 import com.creants.graph.util.Tracer;
 import com.restfb.DefaultFacebookClient;
@@ -64,14 +63,13 @@ public class AuthAccountController {
 
 				JsonObject data = picture.getJsonObject("data");
 				userInfo = new User();
-				userInfo.setUid(IdGenerator.generateUuid());
 				userInfo.setAvatar(data.getString("url"));
 				userInfo.setFullName(user.getString("name"));
 				userInfo.setEmail(user.getString("email"));
 				userRepository.insertUser(userInfo, FB_PROVIDER, clientId);
 			}
 
-			return responseMessage(userInfo, AuthHelper.createSignToken(userInfo.getId()));
+			return responseMessage(userInfo, AuthHelper.createSignToken(userInfo.getUserId()));
 		} catch (FacebookOAuthException e) {
 			return MessageFactory.createErrorMessage(ErrorCode.TOKEN_EXPIRED, "Token expired");
 		}
@@ -87,7 +85,7 @@ public class AuthAccountController {
 				return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 			}
 
-			return responseMessage(user, AuthHelper.createSignToken(user.getId()));
+			return responseMessage(user, AuthHelper.createSignToken(user.getUserId()));
 		} catch (Exception e) {
 			Tracer.error(this.getClass(), "[ERROR] signInWithCustom fail! username:" + username + ", appId: " + appId,
 					Tracer.getTraceMessage(e));
@@ -109,13 +107,12 @@ public class AuthAccountController {
 			User user = userRepository.loginByGuest(deviceId);
 			if (user == null) {
 				user = new User();
-				user.setUid(IdGenerator.generateUuid());
 				user.setFullName("Guest#" + ATOMIC_UPDATER.getAndIncrement(this));
 				user.setDeviceId(deviceId);
 				userRepository.insertGuest(user);
 			}
 
-			return responseMessage(user, AuthHelper.createSignToken(user.getId(), "guest", deviceId));
+			return responseMessage(user, AuthHelper.createSignToken(user.getUserId(), "guest", deviceId));
 		} catch (Exception e) {
 			Tracer.error(this.getClass(), "[ERROR] signInByGuest fail! deviceId:" + deviceId,
 					Tracer.getTraceMessage(e));
@@ -132,7 +129,7 @@ public class AuthAccountController {
 
 		Message message = MessageFactory.createMessage(data);
 		message.setToken(token);
-		message.setPrivateKey(Security.genPrivateKey(token, user.getId()));
+		message.setPrivateKey(Security.genPrivateKey(token, user.getUserId()));
 		return message;
 	}
 
