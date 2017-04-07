@@ -44,6 +44,11 @@ public class UserController {
 		return MessageFactory.createMessage(user);
 	}
 
+	@RequestMapping(path = "test", produces = "application/json; charset=UTF-8")
+	public @ResponseBody Message getUserTest() {
+		return MessageFactory.createMessage(null);
+	}
+
 	@PostMapping(path = "update", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message updateUserInfo(@AuthenticationPrincipal AuthenticatedUser authUser,
 			@RequestParam String data) {
