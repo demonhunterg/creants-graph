@@ -34,6 +34,7 @@ public class Security {
 		return hashtext;
 	}
 
+
 	public static String encryptMD5(byte[] data) throws NoSuchAlgorithmException {
 		MessageDigest m = MessageDigest.getInstance("MD5");
 		m.reset();
@@ -50,6 +51,7 @@ public class Security {
 		return hashtext;
 	}
 
+
 	public static String genPrivateKey(String token, long userId) {
 		try {
 			byte[] baseBin = Base64.encodeBase64((token + userId).getBytes());
@@ -62,6 +64,7 @@ public class Security {
 		return null;
 	}
 
+
 	public static String encrypt(String key, String clearText) throws Exception {
 		Cipher c = Cipher.getInstance("RC4");
 		Key mainKey = new SecretKeySpec(key.getBytes(), "RC4");
@@ -69,6 +72,7 @@ public class Security {
 		byte[] encVal = c.doFinal(clearText.getBytes("UTF-8"));
 		return Base64.encodeBase64String(encVal);
 	}
+
 
 	public static String decrypt(String key, String encryptedData) throws Exception {
 		Cipher c = Cipher.getInstance("RC4");
@@ -79,6 +83,7 @@ public class Security {
 		String decryptedValue = new String(decValue, "UTF-8");
 		return decryptedValue;
 	}
+
 
 	public static void main(String[] args) {
 		try {
@@ -95,5 +100,6 @@ public class Security {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 	}
 }

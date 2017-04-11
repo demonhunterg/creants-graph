@@ -15,6 +15,7 @@ import com.creants.graph.dao.IUserRepository;
 import com.creants.graph.om.Message;
 import com.creants.graph.om.User;
 import com.creants.graph.security.model.AuthenticatedUser;
+import com.creants.graph.security.util.AuthHelper;
 import com.creants.graph.service.CacheService;
 import com.creants.graph.service.MessageFactory;
 import com.creants.graph.util.ErrorCode;
@@ -33,9 +34,9 @@ public class UserController {
 	@Autowired
 	private CacheService cacheService;
 
+
 	@PostMapping(path = "get", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message getUserInfo(@AuthenticationPrincipal AuthenticatedUser authUser) {
-		System.out.println("************** GET USER INFO *****************");
 		User user = userRepository.getUserInfo(authUser.getUserId());
 		if (user == null) {
 			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
@@ -44,10 +45,6 @@ public class UserController {
 		return MessageFactory.createMessage(user);
 	}
 
-	@RequestMapping(path = "test", produces = "application/json; charset=UTF-8")
-	public @ResponseBody Message getUserTest() {
-		return MessageFactory.createMessage(null);
-	}
 
 	@PostMapping(path = "update", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message updateUserInfo(@AuthenticationPrincipal AuthenticatedUser authUser,
@@ -63,6 +60,7 @@ public class UserController {
 		return MessageFactory.createMessage(null);
 	}
 
+
 	@PostMapping(path = "signout", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message signout(@AuthenticationPrincipal AuthenticatedUser authUser) {
 		String token = authUser.getToken();
@@ -74,6 +72,19 @@ public class UserController {
 		}
 
 		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
+	}
+
+
+	@PostMapping(path = "validate", produces = "application/json;charset=UTF-8")
+	public @ResponseBody Message validateToken(@AuthenticationPrincipal AuthenticatedUser authUser) {
+		String token = authUser.getToken();
+		try {
+			AuthHelper.verifyToken(token);
+		} catch (Exception e1) {
+			return MessageFactory.createErrorMessage(ErrorCode.TOKEN_EXPIRED, "Token expired!");
+		}
+
+		return MessageFactory.createMessage(null);
 	}
 
 }

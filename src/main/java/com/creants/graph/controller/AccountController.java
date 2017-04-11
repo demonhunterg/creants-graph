@@ -43,6 +43,7 @@ public class AccountController {
 	@Autowired
 	private IUserRepository userRepository;
 
+
 	@PostMapping(path = "signup", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message signup(@RequestParam(value = "username") String username,
 			@RequestParam(value = "password") String password,
@@ -84,6 +85,7 @@ public class AccountController {
 		return MessageFactory.createMessage(null);
 	}
 
+
 	@PostMapping(value = "/recovery", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message forgetPassword(@RequestParam String email,
 			@RequestParam(value = "app_id") String appId) {
@@ -103,6 +105,7 @@ public class AccountController {
 		return MessageFactory.createMessage(data);
 	}
 
+
 	@PostMapping(value = "/recovery/verify", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message recoveryVerify(@RequestParam(value = "verify_code") String code) {
 		String email = cacheService.get(VERIFY_CODE_PREFIX + code.trim());
@@ -112,6 +115,7 @@ public class AccountController {
 
 		return MessageFactory.createMessage(null);
 	}
+
 
 	@PostMapping(value = "/recovery/reset", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message resetPassword(@RequestParam(value = "verify_code") String code,
@@ -136,9 +140,11 @@ public class AccountController {
 		return MessageFactory.createMessage(null);
 	}
 
+
 	private String genVerifyCode(String code) {
 		return VERIFY_CODE_PREFIX + code.trim();
 	}
+
 
 	private String createMailContent(String verifyCode) {
 		StringBuilder sb = new StringBuilder();
@@ -153,6 +159,7 @@ public class AccountController {
 		sb.append("Best, \n The Creants Team.");
 		return sb.toString();
 	}
+
 
 	private boolean isValidEmailId(String email) {
 		String emailPattern = "\\b[\\w.%-]+@[-.\\w]+\\.[A-Za-z]{2,4}\\b";

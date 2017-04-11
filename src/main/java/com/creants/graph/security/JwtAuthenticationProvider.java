@@ -13,9 +13,10 @@ import com.creants.graph.om.User;
 import com.creants.graph.security.model.AuthenticatedUser;
 import com.creants.graph.security.model.JwtAuthenticationToken;
 import com.creants.graph.security.util.AuthHelper;
+import com.creants.graph.util.Security;
 
 /**
- * @author LamHa
+ * @author LamHM
  *
  */
 @Component
@@ -26,10 +27,12 @@ public class JwtAuthenticationProvider extends AbstractUserDetailsAuthentication
 		return (JwtAuthenticationToken.class.isAssignableFrom(authentication));
 	}
 
+
 	@Override
 	protected void additionalAuthenticationChecks(UserDetails userDetails,
 			UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 	}
+
 
 	@Override
 	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication)
@@ -40,7 +43,8 @@ public class JwtAuthenticationProvider extends AbstractUserDetailsAuthentication
 		String token = jwtAuthenticationToken.getToken();
 		User user = AuthHelper.getUser(token);
 
-		return new AuthenticatedUser(user.getUserId(), token, Collections.<GrantedAuthority>emptyList());
+		return new AuthenticatedUser(user.getUserId(), token, Security.genPrivateKey(token, user.getUserId()),
+				Collections.<GrantedAuthority>emptyList());
 	}
 
 }

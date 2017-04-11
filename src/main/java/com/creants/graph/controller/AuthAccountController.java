@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,6 +45,7 @@ public class AuthAccountController {
 	@Autowired
 	private CacheService cacheService;
 
+
 	@PostMapping(value = "fb", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message oauth(@RequestParam(value = "app_id") String appId,
 			@RequestParam(value = "fb_token") String fbToken) throws Exception {
@@ -75,12 +75,15 @@ public class AuthAccountController {
 		}
 	}
 
+
 	@PostMapping(path = "creants", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message signInWithCustom(@RequestParam(value = "username") String username,
 			@RequestParam(value = "password") String password, @RequestParam(value = "app_id") int appId) {
 
 		try {
 			User user = userRepository.login(username, password);
+			// User user = userRepository.login(username,
+			// Security.encryptMD5(password));
 			if (user == null) {
 				return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 			}
@@ -94,6 +97,7 @@ public class AuthAccountController {
 		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 	}
 
+
 	/**
 	 * @param deviceId
 	 *            định danh duy nhất của thiết bị format: os##imei##appId (exp:
@@ -101,8 +105,8 @@ public class AuthAccountController {
 	 * @return
 	 * 
 	 */
-	@RequestMapping(path = "guest", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-	public @ResponseBody Message signInByGuest(@RequestParam(value = "deviceId") String deviceId) {
+	@PostMapping(path = "guest", produces = "application/json;charset=UTF-8")
+	public @ResponseBody Message signInByGuest(@RequestParam(value = "device_id") String deviceId) {
 		try {
 			User user = userRepository.loginByGuest(deviceId);
 			if (user == null) {
@@ -120,6 +124,7 @@ public class AuthAccountController {
 
 		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
 	}
+
 
 	private Message responseMessage(User user, String token) {
 		// TODO ko cache nữa

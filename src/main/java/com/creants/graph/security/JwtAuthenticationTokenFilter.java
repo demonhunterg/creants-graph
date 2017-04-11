@@ -19,6 +19,7 @@ import com.creants.graph.util.Tracer;
 /**
  * @author LamHa
  *
+ *         http://stackoverflow.com/questions/13994507/how-do-you-send-a-custom-header-in-a-cross-domain-cors-xmlhttprequest
  */
 public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -26,11 +27,18 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 		super(defaultFilterProcessesUrl);
 	}
 
+
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
 			throws AuthenticationException, IOException, ServletException {
-		System.out.println("************** attemptAuthentication ********************");
 		String header = request.getHeader("Authorization");
+		String token = request.getParameter("token");
+		if (token != null) {
+			header = "Bearer " + token;
+		}
+
+		Tracer.debug(this.getClass(), "do attemptAuthentication. Authorization: " + header);
+
 		if (header == null || !header.startsWith("Bearer ")) {
 			throw new JwtTokenMissingException("No JWT token found in request headers");
 		}
@@ -41,16 +49,15 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 			return getAuthenticationManager().authenticate(new JwtAuthenticationToken(authToken));
 		} catch (Exception e) {
 			Tracer.debug(this.getClass(), "attemptAuthentication fail!", Tracer.getTraceMessage(e));
-			throw new ServletException("Invalid token.");
+			throw new ServletException(e.getMessage());
 		}
 	}
+
 
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 			Authentication authResult) throws IOException, ServletException {
 		super.successfulAuthentication(request, response, chain, authResult);
-
-		System.out.println("************** successfulAuthentication ************************");
 		// As this authentication is in HTTP header, after success we need to
 		// continue the request normally
 		// and return the response as if the resource was not secured at all

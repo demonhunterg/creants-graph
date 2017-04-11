@@ -21,11 +21,13 @@ public class AuthHelper {
 	// expire trong 10 ngày
 	private static final int TTL_MILI = 864000000;
 
+
 	public static String createSignToken(long userId) {
 		String token;
 		try {
 			token = JWT.create().withIssuer(ISSUER).withExpiresAt(new Date(System.currentTimeMillis() + TTL_MILI))
-					.withClaim("id", userId).withClaim("ttl", TTL_MILI).sign(Algorithm.HMAC256(SIGNING_KEY));
+					.withClaim("id", String.valueOf(userId)).withClaim("ttl", TTL_MILI)
+					.sign(Algorithm.HMAC256(SIGNING_KEY));
 		} catch (Exception e) {
 			Tracer.debug(AuthHelper.class, "createJsonWebToken fail!", Tracer.getTraceMessage(e));
 			throw new RuntimeException(e);
@@ -33,11 +35,12 @@ public class AuthHelper {
 		return token;
 	}
 
+
 	public static String createSignToken(long userId, String type, String deviceId) {
 		String token;
 		try {
 			token = JWT.create().withIssuer(ISSUER).withExpiresAt(new Date(System.currentTimeMillis() + TTL_MILI))
-					.withClaim("id", userId).withClaim("type", type).withClaim("device_id", deviceId)
+					.withClaim("id", String.valueOf(userId)).withClaim("type", type).withClaim("device_id", deviceId)
 					.withClaim("ttl", TTL_MILI).sign(Algorithm.HMAC256(SIGNING_KEY));
 		} catch (Exception e) {
 			Tracer.debug(AuthHelper.class, "createJsonWebToken fail!", Tracer.getTraceMessage(e));
@@ -46,20 +49,25 @@ public class AuthHelper {
 		return token;
 	}
 
+
 	public static DecodedJWT verifyToken(String token) throws IllegalArgumentException, UnsupportedEncodingException {
 		// cho phép trễ 1mili, giả sử set expire là 10mili thì 11mili mới expire
 		return JWT.require(Algorithm.HMAC256(SIGNING_KEY)).withIssuer(ISSUER).acceptLeeway(1).build().verify(token);
 	}
 
+
 	public static int getUserId(String token) {
 		return JWT.decode(token).getClaim("id").asInt();
 	}
 
+
 	public static User getUser(String token) {
 		User user = new User();
-		user.setUserId(JWT.decode(token).getClaim("id").asInt());
+		JWT decode = JWT.decode(token);
+		user.setUserId(Long.parseLong(decode.getClaim("id").asString()));
 		return user;
 	}
+
 
 	public static void main(String[] args) {
 		String createSignToken = createSignToken(1000);
