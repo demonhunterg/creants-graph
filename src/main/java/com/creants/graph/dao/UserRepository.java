@@ -216,7 +216,7 @@ public class UserRepository implements IUserRepository {
 
 	// TODO update theo userId
 	public int updatePassword(String email, String newPassword) {
-		return jdbcTemplate.update("update account set password = ? where email = ? AND client_id is null", newPassword,
+		return jdbcTemplate.update("update account set password = md5(?) where email = ? AND client_id is null", newPassword,
 				email);
 	}
 

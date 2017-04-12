@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +32,8 @@ public class GuestController {
 	@Autowired
 	private IUserRepository userRepository;
 
-	@RequestMapping(path = "link/fb", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+
+	@PostMapping(path = "link/fb", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message linkFb(@RequestParam(value = "token") String token,
 			@RequestParam(value = "fbToken") String fbToken) {
 		try {
@@ -68,6 +69,6 @@ public class GuestController {
 			Tracer.error(this.getClass(), "linkFb fail! token: " + token, Tracer.getTraceMessage(e));
 		}
 
-		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
+		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 	}
 }

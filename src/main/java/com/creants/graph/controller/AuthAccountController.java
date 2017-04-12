@@ -15,7 +15,6 @@ import com.creants.graph.dao.IUserRepository;
 import com.creants.graph.om.Message;
 import com.creants.graph.om.User;
 import com.creants.graph.security.util.AuthHelper;
-import com.creants.graph.service.CacheService;
 import com.creants.graph.service.MessageFactory;
 import com.creants.graph.util.ErrorCode;
 import com.creants.graph.util.Security;
@@ -41,9 +40,6 @@ public class AuthAccountController {
 
 	@Autowired
 	private IUserRepository userRepository;
-
-	@Autowired
-	private CacheService cacheService;
 
 
 	@PostMapping(value = "fb", produces = "application/json;charset=UTF-8")
@@ -71,7 +67,7 @@ public class AuthAccountController {
 
 			return responseMessage(userInfo, AuthHelper.createSignToken(userInfo.getUserId()));
 		} catch (FacebookOAuthException e) {
-			return MessageFactory.createErrorMessage(ErrorCode.TOKEN_EXPIRED, "Token expired");
+			return MessageFactory.createErrorMessage(ErrorCode.TOKEN_EXPIRED);
 		}
 	}
 
@@ -81,11 +77,9 @@ public class AuthAccountController {
 			@RequestParam(value = "password") String password, @RequestParam(value = "app_id") int appId) {
 
 		try {
-			User user = userRepository.login(username, password);
-			// User user = userRepository.login(username,
-			// Security.encryptMD5(password));
+			User user = userRepository.login(username, Security.encryptMD5(password));
 			if (user == null) {
-				return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
+				return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 			}
 
 			return responseMessage(user, AuthHelper.createSignToken(user.getUserId()));
@@ -94,7 +88,7 @@ public class AuthAccountController {
 					Tracer.getTraceMessage(e));
 		}
 
-		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
+		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 	}
 
 
@@ -122,13 +116,11 @@ public class AuthAccountController {
 					Tracer.getTraceMessage(e));
 		}
 
-		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
+		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 	}
 
 
 	private Message responseMessage(User user, String token) {
-		// TODO ko cache nữa
-		cacheService.login(token, token);
 		Map<String, Object> data = new HashMap<>();
 		data.put("user", user);
 

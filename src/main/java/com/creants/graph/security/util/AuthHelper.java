@@ -56,7 +56,7 @@ public class AuthHelper {
 	}
 
 
-	public static int getUserId(String token) {
+	public static long getUserId(String token) {
 		return JWT.decode(token).getClaim("id").asInt();
 	}
 

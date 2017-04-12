@@ -1,6 +1,6 @@
 package com.creants.graph.controller;
 
-import java.sql.SQLException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.creants.graph.dao.IUserRepository;
-import com.creants.graph.exception.CreantsException;
 import com.creants.graph.om.Message;
 import com.creants.graph.om.User;
 import com.creants.graph.service.CacheService;
@@ -22,6 +21,7 @@ import com.creants.graph.service.MailService;
 import com.creants.graph.service.MessageFactory;
 import com.creants.graph.util.ErrorCode;
 import com.creants.graph.util.IdGenerator;
+import com.creants.graph.util.Security;
 
 /**
  * @author LamHa
@@ -50,38 +50,31 @@ public class AccountController {
 			@RequestParam(value = "email", required = false) String email) {
 
 		username = username.trim();
+		password = password.trim();
 		if (username.length() < 6) {
-			return MessageFactory.createErrorMessage(ErrorCode.INVALID_USERNAME,
-					"Invalid username. Account name must be between 6 and 18 characters");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_USERNAME);
 		}
 
 		if (password.length() < 3) {
-			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD,
-					"Invalid password. Password must be between 3 and 18 characters");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD);
 		}
 
 		if (email != null && email.length() > 0 && !isValidEmailId(email)) {
-			return MessageFactory.createErrorMessage(ErrorCode.INVALID_EMAIL, "Invalid email");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_EMAIL);
 		}
 
 		try {
 			User user = new User();
 			user.setUsername(username);
-			user.setPassword(password);
+			user.setPassword(Security.encryptMD5(password));
 			user.setFullName(username);
 			user.setEmail(email);
 
 			userRepository.insertUser(user);
 		} catch (Exception e) {
-			SQLException cause = (SQLException) e.getCause();
-			CreantsException creantsException = (CreantsException) cause.getCause();
-			return MessageFactory.createErrorMessage(
-					creantsException.getErrorCode() == -1 ? ErrorCode.TOKEN_EXPIRED : ErrorCode.UPDATE_FAIL,
-					creantsException.getMessage());
+			return MessageFactory.createErrorMessage(ErrorCode.EXIST_USER);
 		}
 
-		// TODO client chủ động gọi đăng nhập
-		// return signInWithCustom(username, password, appId);
 		return MessageFactory.createMessage(null);
 	}
 
@@ -92,7 +85,7 @@ public class AccountController {
 
 		boolean isExistEmail = userRepository.checkExistEmail(email);
 		if (!isExistEmail)
-			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND, "User not found");
+			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 
 		String verifyCode = IdGenerator.randomString(VERIFY_CODE_LENGHT);
 		cacheService.upsert(genVerifyCode(verifyCode), VERIFY_CODE_SECOND_TTL, email.trim());
@@ -110,7 +103,7 @@ public class AccountController {
 	public @ResponseBody Message recoveryVerify(@RequestParam(value = "verify_code") String code) {
 		String email = cacheService.get(VERIFY_CODE_PREFIX + code.trim());
 		if (email == null) {
-			return MessageFactory.createErrorMessage(ErrorCode.VERIFY_CODE_EXPIRED, "Verify code expired");
+			return MessageFactory.createErrorMessage(ErrorCode.VERIFY_CODE_EXPIRED);
 		}
 
 		return MessageFactory.createMessage(null);
@@ -123,18 +116,21 @@ public class AccountController {
 
 		String email = cacheService.get(genVerifyCode(code));
 		if (email == null) {
-			return MessageFactory.createErrorMessage(ErrorCode.INVALID_VERIFY_CODE, "Invalid verify code");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_VERIFY_CODE);
 		}
 
 		password = password.trim();
 		if (password.length() < 3) {
-			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD,
-					"Invalid password. Password must be between 3 and 18 characters");
+			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD);
 		}
 
-		int result = userRepository.updatePassword(email, password);
-		if (result < 1) {
-			return MessageFactory.createErrorMessage(ErrorCode.UPDATE_FAIL, "Update fail");
+		try {
+			int result = userRepository.updatePassword(email, Security.encryptMD5(password));
+			if (result < 1) {
+				return MessageFactory.createErrorMessage(ErrorCode.UPDATE_FAIL);
+			}
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
 		}
 
 		return MessageFactory.createMessage(null);

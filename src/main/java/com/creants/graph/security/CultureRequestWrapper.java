@@ -39,6 +39,7 @@ public class CultureRequestWrapper extends HttpServletRequestWrapper {
 
 			return null;
 		}
+
 		// other cases
 		return super.getParameterValues(name);
 	}
