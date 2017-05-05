@@ -65,7 +65,7 @@ public class AuthAccountController {
 				userRepository.insertUser(userInfo, FB_PROVIDER, clientId);
 			}
 
-			return responseMessage(userInfo, AuthHelper.createSignToken(userInfo.getUserId()));
+			return responseMessage(userInfo, AuthHelper.createSignToken(userInfo.getUserId(), appId));
 		} catch (FacebookOAuthException e) {
 			return MessageFactory.createErrorMessage(ErrorCode.TOKEN_EXPIRED);
 		}
@@ -74,7 +74,7 @@ public class AuthAccountController {
 
 	@PostMapping(path = "creants", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message signInWithCustom(@RequestParam(value = "username") String username,
-			@RequestParam(value = "password") String password, @RequestParam(value = "app_id") int appId) {
+			@RequestParam(value = "password") String password, @RequestParam(value = "app_id") String appId) {
 
 		try {
 			User user = userRepository.login(username, Security.encryptMD5(password));
@@ -82,7 +82,7 @@ public class AuthAccountController {
 				return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 			}
 
-			return responseMessage(user, AuthHelper.createSignToken(user.getUserId()));
+			return responseMessage(user, AuthHelper.createSignToken(user.getUserId(), appId));
 		} catch (Exception e) {
 			Tracer.error(this.getClass(), "[ERROR] signInWithCustom fail! username:" + username + ", appId: " + appId,
 					Tracer.getTraceMessage(e));

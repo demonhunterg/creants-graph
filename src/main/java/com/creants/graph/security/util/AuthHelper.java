@@ -17,16 +17,15 @@ import com.creants.graph.util.Tracer;
  */
 public class AuthHelper {
 	private static final String ISSUER = "auth0";
-	private static final String SIGNING_KEY = "LongAndHardTofdfithSpecialCharacters@^($%*$%";
+	private static final String SIGNING_KEY = "creants@^($%*$%";
 	// expire trong 10 ngày
 	private static final int TTL_MILI = 864000000;
 
-
-	public static String createSignToken(long userId) {
+	public static String createSignToken(long userId, String appId) {
 		String token;
 		try {
 			token = JWT.create().withIssuer(ISSUER).withExpiresAt(new Date(System.currentTimeMillis() + TTL_MILI))
-					.withClaim("id", String.valueOf(userId)).withClaim("ttl", TTL_MILI)
+					.withClaim("id", String.valueOf(userId)).withClaim("app_id", appId).withClaim("ttl", TTL_MILI)
 					.sign(Algorithm.HMAC256(SIGNING_KEY));
 		} catch (Exception e) {
 			Tracer.debug(AuthHelper.class, "createJsonWebToken fail!", Tracer.getTraceMessage(e));
@@ -34,7 +33,6 @@ public class AuthHelper {
 		}
 		return token;
 	}
-
 
 	public static String createSignToken(long userId, String type, String deviceId) {
 		String token;
@@ -49,17 +47,14 @@ public class AuthHelper {
 		return token;
 	}
 
-
 	public static DecodedJWT verifyToken(String token) throws IllegalArgumentException, UnsupportedEncodingException {
 		// cho phép trễ 1mili, giả sử set expire là 10mili thì 11mili mới expire
 		return JWT.require(Algorithm.HMAC256(SIGNING_KEY)).withIssuer(ISSUER).acceptLeeway(1).build().verify(token);
 	}
 
-
 	public static long getUserId(String token) {
 		return JWT.decode(token).getClaim("id").asInt();
 	}
-
 
 	public static User getUser(String token) {
 		User user = new User();
@@ -68,9 +63,8 @@ public class AuthHelper {
 		return user;
 	}
 
-
 	public static void main(String[] args) {
-		String createSignToken = createSignToken(1000);
+		String createSignToken = createSignToken(1000, "1");
 		System.out.println(createSignToken);
 	}
 }
