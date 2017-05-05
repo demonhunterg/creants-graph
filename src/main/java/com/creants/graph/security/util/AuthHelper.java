@@ -64,7 +64,7 @@ public class AuthHelper {
 	}
 
 	public static void main(String[] args) {
-		String createSignToken = createSignToken(1000, "1");
+		String createSignToken = createSignToken(1000, "2");
 		System.out.println(createSignToken);
 	}
 }
