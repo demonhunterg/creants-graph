@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ import com.creants.graph.service.MessageFactory;
 import com.creants.graph.util.ErrorCode;
 import com.creants.graph.util.IdGenerator;
 import com.creants.graph.util.Security;
+import com.creants.graph.util.Tracer;
 
 /**
  * @author LamHa
@@ -49,12 +51,17 @@ public class AccountController {
 			@RequestParam(value = "password") String password,
 			@RequestParam(value = "email", required = false) String email) {
 
+		Tracer.debug(this.getClass(), "signup: " + username + "/password:" + password + "/email:" + email);
+		if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+			return MessageFactory.createErrorMessage(ErrorCode.LACK_OF_INFO);
+		}
+
 		username = username.trim();
-		password = password.trim();
 		if (username.length() < 6) {
 			return MessageFactory.createErrorMessage(ErrorCode.INVALID_USERNAME);
 		}
 
+		password = password.trim();
 		if (password.length() < 3) {
 			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD);
 		}
@@ -72,6 +79,9 @@ public class AccountController {
 
 			userRepository.insertUser(user);
 		} catch (Exception e) {
+			e.printStackTrace();
+			Tracer.error(this.getClass(),
+					"sigup fail!" + "username: " + username + "/password:" + password + "/email:" + email);
 			return MessageFactory.createErrorMessage(ErrorCode.EXIST_USER);
 		}
 

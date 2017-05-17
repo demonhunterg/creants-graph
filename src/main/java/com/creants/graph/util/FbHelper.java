@@ -30,7 +30,7 @@ public class FbHelper {
 			userInfo.setEmail(user.getString("email"));
 			return userInfo;
 		} catch (Exception e) {
-			Tracer.error(FbHelper.class, "getFbClient fail!");
+			Tracer.error(FbHelper.class, "getFbClient convertToUser fail!", Tracer.getTraceMessage(e));
 		}
 
 		return null;

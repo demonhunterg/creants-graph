@@ -12,6 +12,8 @@ import org.apache.logging.log4j.Logger;
 public class Tracer {
 	private static final Logger TRACE_LOG = LogManager.getLogger("TraceLogger");
 	private static final Logger ERROR_LOG = LogManager.getLogger("ErrorLogger");
+	private static final Logger EXCEPTION_LOG = LogManager.getLogger("ExceptionLogger");
+
 
 	public static void debug(Class<?> clazz, Object... msgs) {
 		if (TRACE_LOG.isDebugEnabled()) {
@@ -20,9 +22,11 @@ public class Tracer {
 
 	}
 
+
 	public static void info(Class<?> clazz, Object... msgs) {
 		TRACE_LOG.info(getTraceMessage(clazz, msgs));
 	}
+
 
 	/**
 	 * Log thông tin lỗi
@@ -36,6 +40,12 @@ public class Tracer {
 		ERROR_LOG.error(getTraceMessage(clazz, msgs));
 	}
 
+
+	public static void exceptionLog(Class<?> clazz, Object... msgs) {
+		EXCEPTION_LOG.error(getTraceMessage(clazz, msgs));
+	}
+
+
 	/**
 	 * Log thông tin cảnh báo
 	 * 
@@ -48,6 +58,7 @@ public class Tracer {
 		TRACE_LOG.warn(getTraceMessage(clazz, msgs));
 	}
 
+
 	private static String getTraceMessage(Class<?> clazz, Object[] msgs) {
 		StringBuilder traceMsg = new StringBuilder().append("{").append(clazz.getSimpleName()).append("}: ");
 		Object[] arrayOfObject;
@@ -58,6 +69,7 @@ public class Tracer {
 
 		return traceMsg.toString();
 	}
+
 
 	public static String getTraceMessage(Exception throwable) {
 		StringWriter stringWriter = new StringWriter();

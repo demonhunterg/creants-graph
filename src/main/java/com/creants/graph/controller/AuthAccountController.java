@@ -1,5 +1,6 @@
 package com.creants.graph.controller;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -84,8 +85,19 @@ public class AuthAccountController {
 
 			return responseMessage(user, AuthHelper.createSignToken(user.getUserId(), appId));
 		} catch (Exception e) {
-			Tracer.error(this.getClass(), "[ERROR] signInWithCustom fail! username:" + username + ", appId: " + appId,
-					Tracer.getTraceMessage(e));
+			Throwable cause = e.getCause();
+			if (cause instanceof SQLException) {
+				int errorCode = ((SQLException) cause).getErrorCode();
+				Tracer.error(this.getClass(), "[ERROR] signInWithCustom fail! username:" + username + ", appId: "
+						+ appId + ", errorCode: " + errorCode);
+				if (errorCode == 0) {
+					return MessageFactory.createErrorMessage(ErrorCode.WRONG_PASSWORD);
+				}
+
+			} else {
+				Tracer.error(this.getClass(),
+						"[ERROR] signInWithCustom fail! username:" + username + ", appId: " + appId);
+			}
 		}
 
 		return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
@@ -102,6 +114,7 @@ public class AuthAccountController {
 	@PostMapping(path = "guest", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message signInByGuest(@RequestParam(value = "device_id") String deviceId) {
 		try {
+			Tracer.debug(this.getClass(), "signInByGuest with deviceId:" + deviceId);
 			User user = userRepository.loginByGuest(deviceId);
 			if (user == null) {
 				user = new User();

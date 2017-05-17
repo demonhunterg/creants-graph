@@ -17,5 +17,5 @@ public interface IUser {
 
 	String getBirthday();
 
-	long getMoney();
+	Long getMoney();
 }

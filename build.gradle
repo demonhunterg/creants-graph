@@ -8,6 +8,13 @@ repositories {
     maven { url "http://repo.spring.io/snapshot" }
 }
 
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web:1.4.2.RELEASE"){
     	exclude module: "spring-boot-starter-tomcat"
@@ -34,6 +41,7 @@ dependencies {
     compile group: 'javax.mail', name: 'mail', version: '1.4.3'
     compile 'com.google.guava:guava:21.0'
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
+    compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
 }
 
 

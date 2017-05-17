@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.creants.graph.om.User;
 import com.creants.graph.util.Tracer;
@@ -53,7 +54,8 @@ public class AuthHelper {
 	}
 
 	public static long getUserId(String token) {
-		return JWT.decode(token).getClaim("id").asInt();
+		Claim claim = JWT.decode(token).getClaim("id");
+		return Long.parseLong(claim.asString());
 	}
 
 	public static User getUser(String token) {

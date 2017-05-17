@@ -30,15 +30,17 @@ public class InternalApiController {
 	private IUserRepository userRepository;
 
 
-	@PostMapping(path = "verify", produces = "text/plain;charset=UTF-8")
-	public @ResponseBody Message verify(@RequestHeader(value = "key") String key,
+	@PostMapping(path = "verify", produces = "application/json; charset=UTF-8")
+	public @ResponseBody Message verify(@RequestParam(value = "key") String key,
 			@RequestParam(value = "token") String token) {
+		System.out.println(token);
 		try {
 			if (!isValidRequest(key))
 				return MessageFactory.createErrorMessage(ErrorCode.BAD_REQUEST);
 
 			AuthHelper.verifyToken(token);
-			return MessageFactory.createMessage(userRepository.getUserInfo(AuthHelper.getUserId(token)));
+			Message createMessage = MessageFactory.createMessage(userRepository.getUserInfo(AuthHelper.getUserId(token)));
+			return createMessage;
 		} catch (Exception e) {
 			Tracer.error(this.getClass(), "verify fail! ", Tracer.getTraceMessage(e));
 		}

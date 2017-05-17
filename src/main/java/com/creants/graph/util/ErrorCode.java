@@ -14,7 +14,10 @@ public enum ErrorCode {
 	VERIFY_CODE_EXPIRED(1005, "Verify code expired"),
 	EXIST_USER(1006, "Exist user"),
 	TOKEN_EXPIRED(1008, "Token expired"),
-	UPDATE_FAIL(1009, "Update fail");
+	UPDATE_FAIL(1009, "Update fail"),
+	WRONG_PASSWORD(1010, "Wrong password"),
+	PASSWORD_NOT_MATCH(1011, "Password not match"),
+	LACK_OF_INFO(1012, "Lack of info");
 
 	public int id;
 	public String message;

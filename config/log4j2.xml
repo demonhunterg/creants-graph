@@ -32,6 +32,18 @@
 			</Policies>
 			<DefaultRolloverStrategy max="1000"/>
 		</RollingFile>
+
+        <RollingFile name="exception-log" fileName="${log-path}/exception-trace.log"
+			filePattern="${log-path}/$${date:yyyy-MM}/exception-trace-%d{dd-MM-yyyy}-%i.log" append="true">
+			<PatternLayout>
+				<Pattern>[%d{ISO8601}] [%t %x] %c [%5p] %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="5 MB"/>
+			</Policies>
+			<DefaultRolloverStrategy max="1000"/>
+		</RollingFile>
     </Appenders>
     <Loggers>
         
@@ -41,9 +53,14 @@
             <appender-ref ref="error-log" level="error"/>
         </Logger>
         
-         <Logger name="ErrorLogger" level="debug" additivity="false">
+        <Logger name="ErrorLogger" level="debug" additivity="false">
             <appender-ref ref="console-log" level="debug"/>
             <appender-ref ref="error-log" level="error"/>
+        </Logger>
+
+        <Logger name="ExceptionLogger" level="debug" additivity="false">
+            <appender-ref ref="console-log" level="debug"/>
+            <appender-ref ref="exception-log" level="error"/>
         </Logger>
         
         <Root level="info" additivity="false">

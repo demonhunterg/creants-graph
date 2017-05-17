@@ -2,6 +2,8 @@ package com.creants.graph.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,14 @@ public class UserRepository implements IUserRepository {
 							return user;
 						}
 
+						if (result == 0) {
+							throw new SQLException("Invalid password", "sp_account_login", 0);
+						}
+
+						if (result == -1) {
+							throw new SQLException("Not exist user", "sp_account_login", -1);
+						}
+
 						return null;
 					}
 				});
@@ -61,7 +71,7 @@ public class UserRepository implements IUserRepository {
 					new RowMapper<User>() {
 						public User mapRow(ResultSet rs, int rowNum) throws SQLException {
 							User user = new User();
-							user.setUserId(rs.getInt("id"));
+							user.setUserId(rs.getInt("user_id"));
 							user.setAvatar(rs.getString("avatar"));
 							user.setFullName(rs.getString("full_name"));
 							user.setMoney(rs.getLong("money"));
@@ -70,6 +80,7 @@ public class UserRepository implements IUserRepository {
 
 					});
 		} catch (Exception e) {
+			Tracer.error(this.getClass(), "loginByGuest fail! deviceId: " + deviceId, Tracer.getTraceMessage(e));
 		}
 		return null;
 	}
@@ -151,6 +162,7 @@ public class UserRepository implements IUserRepository {
 					public void processRow(ResultSet rs) throws SQLException {
 						int result = rs.getInt("result");
 						if (result != 1) {
+							Tracer.warn(UserRepository.class, "insert user fail!", user.toString());
 							throw new SQLException(new CreantsException(result, rs.getString("msg")));
 						}
 
@@ -214,10 +226,16 @@ public class UserRepository implements IUserRepository {
 	}
 
 
+	@Override
+	public int changePassword(long userId, String password, String newPassword) {
+		return jdbcTemplate.update("call sp_account_change_pass(?, ?, ?)", userId, password, newPassword);
+	}
+
+
 	// TODO update theo userId
 	public int updatePassword(String email, String newPassword) {
-		return jdbcTemplate.update("update account set password = md5(?) where email = ? AND client_id is null", newPassword,
-				email);
+		return jdbcTemplate.update("update account set password = md5(?) where email = ? AND client_id is null",
+				newPassword, email);
 	}
 
 
@@ -238,6 +256,31 @@ public class UserRepository implements IUserRepository {
 						return rs.getLong("result");
 					}
 				});
+	}
+
+
+	@Override
+	public List<User> findUserList(String userIds) {
+		List<User> users = new ArrayList<>();
+		try {
+			users = jdbcTemplate.query("SELECT *FROM account_avg.account WHERE `id` IN ("+userIds+")",
+					new RowMapper<User>() {
+
+						@Override
+						public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+							User user = new User();
+							user.setUserId(rs.getInt("id"));
+							user.setFullName(rs.getString("full_name"));
+							user.setAvatar(rs.getString("avatar"));
+							user.setGender(rs.getInt("gender"));
+							return user;
+						}
+
+					});
+		} catch (Exception e) {
+		}
+
+		return users;
 	}
 
 }

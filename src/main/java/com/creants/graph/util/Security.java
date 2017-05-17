@@ -87,12 +87,13 @@ public class Security {
 
 	public static void main(String[] args) {
 		try {
-			String genPrivateKey = genPrivateKey("tokenfdsfdsfagbwrtrtgejmhgjgfhgdfg", 123);
+//			String genPrivateKey = genPrivateKey("eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjI1OCIsImV4cCI6MTQ5NTg1NzE5NSwiaXNzIjoiYXV0aDAiLCJ0dGwiOjg2NDAwMDAwMH0.nOVo0pmmmv_WmfU_lo42ff9I0SiaeMXwnoX3JffFbjE", 287);
+			String genPrivateKey = "2b3df624f4";
 			System.out.println("************ key:" + genPrivateKey);
 			JsonObject jo = JsonObject.create();
-			jo.put("username", "Hà Mạnh Lâm");
-			jo.put("id", 123);
-			jo.put("email", "hamanhlam2005@gmail.com");
+			jo.put("password", "123456");
+			jo.put("new_password", "123456789");
+			jo.put("re_new_password", "123456789");
 			String encrypt = encrypt(genPrivateKey, jo.toString());
 			System.out.println("*******DATA: " + encrypt);
 
