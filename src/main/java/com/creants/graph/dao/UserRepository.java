@@ -228,7 +228,12 @@ public class UserRepository implements IUserRepository {
 
 	@Override
 	public int changePassword(long userId, String password, String newPassword) {
-		return jdbcTemplate.update("call sp_account_change_pass(?, ?, ?)", userId, password, newPassword);
+		return jdbcTemplate.queryForObject("call sp_account_change_pass(?,?,?)",
+				new Object[] { userId, password, newPassword }, new RowMapper<Integer>() {
+					public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+						return rs.getInt("result");
+					}
+				});
 	}
 
 
@@ -263,7 +268,7 @@ public class UserRepository implements IUserRepository {
 	public List<User> findUserList(String userIds) {
 		List<User> users = new ArrayList<>();
 		try {
-			users = jdbcTemplate.query("SELECT *FROM account_avg.account WHERE `id` IN ("+userIds+")",
+			users = jdbcTemplate.query("SELECT *FROM account_avg.account WHERE `id` IN (" + userIds + ")",
 					new RowMapper<User>() {
 
 						@Override

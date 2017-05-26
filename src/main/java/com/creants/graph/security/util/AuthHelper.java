@@ -66,7 +66,13 @@ public class AuthHelper {
 	}
 
 	public static void main(String[] args) {
-		String createSignToken = createSignToken(1000, "2");
-		System.out.println(createSignToken);
+		try {
+			DecodedJWT verifyToken = verifyToken("eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjMwMCIsImV4cCI6MTQ5NTk2NzI0NywiaXNzIjoiYXV0aDAiLCJhcHBfaWQiOiIxIiwidHRsIjo4NjQwMDAwMDB9.HUnV8SGikTuUel8GTSFI0jPeoDFP8Wx0f2HzwyZSq8M");
+			System.out.println("test");
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 	}
 }

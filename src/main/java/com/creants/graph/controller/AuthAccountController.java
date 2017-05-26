@@ -46,7 +46,7 @@ public class AuthAccountController {
 	@PostMapping(value = "fb", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message oauth(@RequestParam(value = "app_id") String appId,
 			@RequestParam(value = "fb_token") String fbToken) throws Exception {
-
+		Tracer.debug(this.getClass(), "fbToken:" + fbToken);
 		try {
 			FacebookClient facebookClient = new DefaultFacebookClient(fbToken, Version.VERSION_2_6);
 			JsonObject user = facebookClient.fetchObject("me", JsonObject.class,
@@ -62,7 +62,9 @@ public class AuthAccountController {
 				userInfo = new User();
 				userInfo.setAvatar(data.getString("url"));
 				userInfo.setFullName(user.getString("name"));
-				userInfo.setEmail(user.getString("email"));
+				if (user.has("email")) {
+					userInfo.setEmail(user.getString("email"));
+				}
 				userRepository.insertUser(userInfo, FB_PROVIDER, clientId);
 			}
 
