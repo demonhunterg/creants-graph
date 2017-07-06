@@ -62,7 +62,7 @@ public class AccountController {
 		}
 
 		password = password.trim();
-		if (password.length() < 3) {
+		if (password.length() < 6) {
 			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD);
 		}
 
@@ -93,9 +93,9 @@ public class AccountController {
 	public @ResponseBody Message forgetPassword(@RequestParam String email,
 			@RequestParam(value = "app_id") String appId) {
 
-		boolean isExistEmail = userRepository.checkExistEmail(email);
-		if (!isExistEmail)
-			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
+//		boolean isExistEmail = userRepository.checkExistEmail(email);
+//		if (!isExistEmail)
+//			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 
 		String verifyCode = IdGenerator.randomString(VERIFY_CODE_LENGHT);
 		cacheService.upsert(genVerifyCode(verifyCode), VERIFY_CODE_SECOND_TTL, email.trim());

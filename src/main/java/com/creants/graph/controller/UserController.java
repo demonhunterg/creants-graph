@@ -81,7 +81,7 @@ public class UserController {
 		}
 
 		newPassword = newPassword.trim();
-		if (newPassword.length() < 3) {
+		if (newPassword.length() < 6) {
 			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD);
 		}
 

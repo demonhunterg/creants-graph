@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -49,7 +50,8 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 			return getAuthenticationManager().authenticate(new JwtAuthenticationToken(authToken));
 		} catch (Exception e) {
 			Tracer.debug(this.getClass(), "attemptAuthentication fail!", Tracer.getTraceMessage(e));
-			throw new ServletException(e.getMessage());
+			// throw new ServletException(e.getMessage());
+			throw new AccountExpiredException("Token has expired", e);
 		}
 	}
 

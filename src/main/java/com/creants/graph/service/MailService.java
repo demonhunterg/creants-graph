@@ -31,7 +31,7 @@ public class MailService {
 	public void sendMail(String to, String subject, String body) {
 		try {
 			SimpleMailMessage message = new SimpleMailMessage();
-			message.setFrom("lamhm@jahamala.com");
+			message.setFrom(from);
 			message.setTo(to);
 			message.setSubject(subject);
 			message.setText(body);
@@ -40,5 +40,6 @@ public class MailService {
 			Tracer.error(CreantsGraphApplication.class, "ERROR", Tracer.getTraceMessage(e));
 		}
 	}
+	
 
 }

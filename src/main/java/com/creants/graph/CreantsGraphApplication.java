@@ -13,4 +13,5 @@ public class CreantsGraphApplication {
 		System.setProperty("log4j.configurationFile", "config/log4j2.xml");
 		SpringApplication.run(CreantsGraphApplication.class, args);
 	}
+
 }

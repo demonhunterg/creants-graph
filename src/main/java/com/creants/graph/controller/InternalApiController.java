@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.creants.graph.dao.IUserRepository;
 import com.creants.graph.om.Message;
 import com.creants.graph.om.User;
@@ -33,14 +34,14 @@ public class InternalApiController {
 	@PostMapping(path = "verify", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message verify(@RequestParam(value = "key") String key,
 			@RequestParam(value = "token") String token) {
-		System.out.println(token);
 		try {
 			if (!isValidRequest(key))
 				return MessageFactory.createErrorMessage(ErrorCode.BAD_REQUEST);
 
 			AuthHelper.verifyToken(token);
-			Message createMessage = MessageFactory.createMessage(userRepository.getUserInfo(AuthHelper.getUserId(token)));
-			return createMessage;
+			return MessageFactory.createMessage(userRepository.getUserInfo(AuthHelper.getUserId(token)));
+		} catch (InvalidClaimException ex) {
+			return MessageFactory.createErrorMessage(ErrorCode.TOKEN_EXPIRED);
 		} catch (Exception e) {
 			Tracer.error(this.getClass(), "verify fail! ", Tracer.getTraceMessage(e));
 		}

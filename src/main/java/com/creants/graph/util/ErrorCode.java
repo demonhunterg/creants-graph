@@ -8,7 +8,7 @@ public enum ErrorCode {
 	BAD_REQUEST(-1, "Bad request"),
 	USER_NOT_FOUND(1000, "User not found"),
 	INVALID_USERNAME(1001, "Invalid username. Account name must be between 6 and 18 characters"),
-	INVALID_PASSWORD(1002, "Invalid password. Password must be between 3 and 18 characters"),
+	INVALID_PASSWORD(1002, "Invalid password. Password must be between 6 and 18 characters"),
 	INVALID_EMAIL(1003, "Invalid email"),
 	INVALID_VERIFY_CODE(1004, "Invalid verify code"),
 	VERIFY_CODE_EXPIRED(1005, "Verify code expired"),

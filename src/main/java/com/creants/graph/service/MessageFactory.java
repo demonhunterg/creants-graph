@@ -24,6 +24,14 @@ public class MessageFactory {
 		return msg;
 	}
 
+	public static Message createErrorMessage(ErrorCode error, String customeMsg) {
+		Message msg = new Message();
+		msg.setCode(error.getId());
+		msg.setMsg(customeMsg);
+		return msg;
+	}
+	
+
 
 	public static Message createMessage(Object data) {
 		Message msg = new Message();
