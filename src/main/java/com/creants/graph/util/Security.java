@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 
-import com.couchbase.client.java.document.json.JsonObject;
+import com.google.gson.JsonObject;
 
 /**
  * @author LamHa
@@ -94,10 +94,10 @@ public class Security {
 			// 287);
 			String genPrivateKey = "2d7f83de58";
 			System.out.println("************ key:" + genPrivateKey);
-			JsonObject jo = JsonObject.create();
-			jo.put("password", "123456");
-			jo.put("new_password", "456789");
-			jo.put("re_new_password", "456789");
+			JsonObject jo = new JsonObject();
+			jo.addProperty("password", "123456");
+			jo.addProperty("new_password", "456789");
+			jo.addProperty("re_new_password", "456789");
 			// String encrypt = encrypt(genPrivateKey, string);
 			String encrypt = "lstS/edyPbK+ugYafYAoNhb4UrzsD9BR7m+UkNVZMRjjkYjxo83SMuM6gCd19gQW1Xqrp5A6qjS95CwufFUD3E+Jkvtsd54n";
 			System.out.println("*******DATA: " + encrypt);

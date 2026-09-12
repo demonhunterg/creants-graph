@@ -27,12 +27,12 @@ public class Configs {
 	public static int sqlMaxSize;
 	public static int sqlConnectTimeout;
 
-	// couchbase
-	public static String couchbaseHosts;
-	public static String couchbaseBucket;
-	public static String couchbasePass;
-	public static int couchbaseOpTimeout;
-	public static int couchbaseConnectionTimeout;
+	// redis
+	public static String redisHost;
+	public static int redisPort;
+	public static String redisPass;
+	public static int redisTimeout;
+	public static int redisDatabase;
 
 	public static void init() {
 		Properties prop = null;
@@ -57,12 +57,12 @@ public class Configs {
 		sqlMaxSize = Integer.parseInt(prop.getProperty("sqlWrite.maxSize", "10"));
 		sqlConnectTimeout = Integer.parseInt(prop.getProperty("sqlWrite.connectionTimeOut", "3600"));
 
-		// couchbase
-		couchbaseHosts = prop.getProperty("cache.hosts", "http://10.8.36.7:8091/pools");
-		couchbaseBucket = prop.getProperty("cache.bucket", "default");
-		couchbasePass = prop.getProperty("cache.pass", "");
-		couchbaseOpTimeout = Integer.parseInt(prop.getProperty("cache.couchbaseOpTimeout", "5000"));
-		couchbaseConnectionTimeout = Integer.parseInt(prop.getProperty("cache.couchbaseConnectionTimeout", "5000"));
+		// redis
+		redisHost = prop.getProperty("cache.host", "localhost");
+		redisPort = Integer.parseInt(prop.getProperty("cache.port", "6379"));
+		redisPass = prop.getProperty("cache.pass", "");
+		redisTimeout = Integer.parseInt(prop.getProperty("cache.timeout", "5000"));
+		redisDatabase = Integer.parseInt(prop.getProperty("cache.database", "0"));
 
 	}
 

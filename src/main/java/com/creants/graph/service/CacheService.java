@@ -3,18 +3,14 @@ package com.creants.graph.service;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.document.RawJsonDocument;
 import com.creants.graph.util.Security;
 import com.creants.graph.util.Tracer;
-
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * @author LamHa
@@ -22,17 +18,8 @@ import rx.functions.Func1;
  */
 @Service
 public class CacheService {
-	private Cluster cluster;
-	private Bucket bucket;
-
-	@Value("${cache.hosts}")
-	private String couchbaseHosts;
-
-	@Value("${cache.bucket}")
-	private String couchbaseBucket;
-
-	@Value("${cache.pass}")
-	private String couchbasePass;
+	@Autowired
+	private StringRedisTemplate redisTemplate;
 
 
 	public void upsert(String key, String jsonString) {
@@ -50,15 +37,16 @@ public class CacheService {
 	}
 
 	public void upsert(String key, int expireSecond, String jsonString) {
-		bucket.upsert(RawJsonDocument.create(key, expireSecond, jsonString));
+		if (expireSecond > 0) {
+			redisTemplate.opsForValue().set(key, jsonString, expireSecond, TimeUnit.SECONDS);
+		} else {
+			redisTemplate.opsForValue().set(key, jsonString);
+		}
 	}
 
 	public String get(String key) {
 		try {
-			RawJsonDocument json = bucket.get(key, RawJsonDocument.class);
-			if (json != null) {
-				return json.content();
-			}
+			return redisTemplate.opsForValue().get(key);
 		} catch (Exception e) {
 		}
 
@@ -67,25 +55,12 @@ public class CacheService {
 
 	public void delete(String key) {
 		try {
-			bucket.remove(key);
+			redisTemplate.delete(key);
 		} catch (Exception e) {
 		}
 	}
 
-	public List<RawJsonDocument> getBulk(final Collection<String> keys) {
-		return Observable.from(keys).flatMap(new Func1<String, Observable<RawJsonDocument>>() {
-			@Override
-			public Observable<RawJsonDocument> call(String id) {
-				return bucket.async().get(id, RawJsonDocument.class);
-			}
-		}).toList().toBlocking().single();
-	}
-
-	public void shutdown() {
-		Tracer.info(this.getClass(), "Destroy extension - Shutdown Couchbase");
-		if (cluster != null) {
-			bucket.close();
-			cluster.disconnect();
-		}
+	public List<String> getBulk(final Collection<String> keys) {
+		return redisTemplate.opsForValue().multiGet(keys);
 	}
 }

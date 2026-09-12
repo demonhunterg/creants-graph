@@ -1,0 +1,38 @@
+initialize:
+  - run: |
+      set -e
+      sudo apt-get update
+      sudo apt-get install -y openjdk-11-jdk redis-server lsb-release curl gnupg
+
+      # MongoDB: official apt repo (7.0 for focal/jammy, 8.0 for noble)
+      CODENAME=$(lsb_release -cs)
+      if [ "$CODENAME" = "noble" ]; then MONGO_MAJOR=8.0; else MONGO_MAJOR=7.0; fi
+      curl -fsSL "https://www.mongodb.org/static/pgp/server-${MONGO_MAJOR}.asc" | sudo gpg --dearmor -o /usr/share/keyrings/mongodb.gpg
+      echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb.gpg] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/${MONGO_MAJOR} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
+      sudo apt-get update
+      sudo apt-get install -y mongodb-org-server mongodb-mongosh
+
+      # warm Gradle cache / verify compile
+      ./gradlew compileJava --console=plain
+maintenance:
+  - run: |
+      redis-server --daemonize yes --save '' --appendonly no || true
+      mkdir -p /tmp/mongodb-data
+      mongod --dbpath /tmp/mongodb-data --bind_ip localhost --fork --logpath /tmp/mongod.log || true
+knowledge:
+  - name: build
+    contents: |
+      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
+      ./gradlew build --console=plain
+  - name: test
+    contents: |
+      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
+      ./gradlew test --console=plain
+  - name: startup
+    contents: |
+      # Redis + mongod are started by the maintenance block.
+      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
+      ./gradlew bootRun --console=plain
+      # App: http://localhost:9393  —  Swagger UI: /swagger-ui.html
+      # NOTE: /actuator/health shows DOWN because mail.creants.net is unreachable
+      # outside the internal network; mongo/redis are fine.
