@@ -35,6 +35,7 @@ public class AuthHelper {
 		return token;
 	}
 
+
 	public static String createSignToken(long userId, String type, String deviceId) {
 		String token;
 		try {
@@ -48,31 +49,27 @@ public class AuthHelper {
 		return token;
 	}
 
+
 	public static DecodedJWT verifyToken(String token) throws IllegalArgumentException, UnsupportedEncodingException {
 		// cho phép trễ 1mili, giả sử set expire là 10mili thì 11mili mới expire
-		return JWT.require(Algorithm.HMAC256(SIGNING_KEY)).withIssuer(ISSUER).acceptLeeway(1).build().verify(token);
+		// return
+		// JWT.require(Algorithm.HMAC256(SIGNING_KEY)).withIssuer(ISSUER).acceptLeeway(1).build().verify(token);
+		return JWT.require(Algorithm.HMAC256(SIGNING_KEY)).withIssuer(ISSUER).acceptLeeway(864000000 * 360).build()
+				.verify(token);
 	}
+
 
 	public static long getUserId(String token) {
 		Claim claim = JWT.decode(token).getClaim("id");
 		return Long.parseLong(claim.asString());
 	}
 
+
 	public static User getUser(String token) {
 		User user = new User();
-		JWT decode = JWT.decode(token);
+		DecodedJWT decode = JWT.decode(token);
 		user.setUserId(Long.parseLong(decode.getClaim("id").asString()));
 		return user;
 	}
 
-	public static void main(String[] args) {
-		try {
-			DecodedJWT verifyToken = verifyToken("eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjMwMCIsImV4cCI6MTQ5NTk2NzI0NywiaXNzIjoiYXV0aDAiLCJhcHBfaWQiOiIxIiwidHRsIjo4NjQwMDAwMDB9.HUnV8SGikTuUel8GTSFI0jPeoDFP8Wx0f2HzwyZSq8M");
-			System.out.println("test");
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
 }

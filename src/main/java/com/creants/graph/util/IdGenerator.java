@@ -11,6 +11,7 @@ public class IdGenerator {
 	private static final String AB = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 	private static final SecureRandom rnd = new SecureRandom();
 
+
 	public static String randomString(int len) {
 		StringBuilder sb = new StringBuilder(len);
 		for (int i = 0; i < len; i++)
@@ -18,8 +19,14 @@ public class IdGenerator {
 		return sb.toString();
 	}
 
+
 	public static String generateUuid() {
 		return randomString(UID_LENGHT);
+	}
+
+
+	public static void main(String[] args) {
+		System.out.println(generateUuid() + "_" + generateUuid());
 	}
 
 }

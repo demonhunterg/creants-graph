@@ -3,18 +3,13 @@ package com.creants.graph.service;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.RawJsonDocument;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.creants.graph.util.Security;
 import com.creants.graph.util.Tracer;
 
@@ -26,7 +21,7 @@ import rx.functions.Func1;
  *
  */
 @Service
-public class CacheService implements InitializingBean {
+public class CacheService {
 	private Cluster cluster;
 	private Bucket bucket;
 
@@ -39,26 +34,6 @@ public class CacheService implements InitializingBean {
 	@Value("${cache.pass}")
 	private String couchbasePass;
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		try {
-			Tracer.info(this.getClass(), "---------------- Start CacheService -----------");
-			CouchbaseEnvironment env = DefaultCouchbaseEnvironment.builder()
-					.connectTimeout((int) TimeUnit.SECONDS.toMillis(45)).kvTimeout(TimeUnit.SECONDS.toMillis(60))
-					.computationPoolSize(3).ioPoolSize(3).build();
-
-			cluster = CouchbaseCluster.create(env, couchbaseHosts);
-			bucket = cluster.openBucket(couchbaseBucket, couchbasePass);
-			if (bucket == null) {
-				Tracer.error(this.getClass(), "[ERROR] Cache service can't get bucket");
-			}
-
-			Tracer.info(this.getClass(), "---------------- CacheService Started -----------");
-		} catch (Exception e) {
-			Tracer.error(this.getClass(), "Init CacheService fail!", Tracer.getTraceMessage(e));
-		}
-
-	}
 
 	public void upsert(String key, String jsonString) {
 		upsert(key, 0, jsonString);

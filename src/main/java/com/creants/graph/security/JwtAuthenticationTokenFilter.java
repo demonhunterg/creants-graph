@@ -38,11 +38,10 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 			header = "Bearer " + token;
 		}
 
-		Tracer.debug(this.getClass(), "do attemptAuthentication. Authorization: " + header);
+		Tracer.debug(this.getClass(), "Do attemptAuthentication. Authorization: " + header);
 
-		if (header == null || !header.startsWith("Bearer ")) {
+		if (header == null || !header.startsWith("Bearer "))
 			throw new JwtTokenMissingException("No JWT token found in request headers");
-		}
 
 		try {
 			String authToken = header.substring(7);
@@ -50,7 +49,6 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 			return getAuthenticationManager().authenticate(new JwtAuthenticationToken(authToken));
 		} catch (Exception e) {
 			Tracer.debug(this.getClass(), "attemptAuthentication fail!", Tracer.getTraceMessage(e));
-			// throw new ServletException(e.getMessage());
 			throw new AccountExpiredException("Token has expired", e);
 		}
 	}

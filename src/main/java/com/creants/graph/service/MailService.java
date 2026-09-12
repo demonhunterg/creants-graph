@@ -10,7 +10,8 @@ import com.creants.graph.CreantsGraphApplication;
 import com.creants.graph.util.Tracer;
 
 /**
- * @author LamHa Để cho phép mình gửi mail đi thì cần bật cho phép truy cập gửi
+ * @author LamHa 
+ * Để cho phép mình gửi mail đi thì cần bật cho phép truy cập gửi
  *         từ app https://www.google.com/settings/security/lesssecureapps
  *
  */
@@ -25,9 +26,6 @@ public class MailService {
 		this.mailSender = mailSender;
 	}
 
-	/**
-	 * This method will send compose and send the message
-	 */
 	public void sendMail(String to, String subject, String body) {
 		try {
 			SimpleMailMessage message = new SimpleMailMessage();

@@ -89,22 +89,25 @@ public class Security {
 	public static void main(String[] args) {
 		try {
 			System.out.println(encryptMD5("123456"));
-//			String genPrivateKey = genPrivateKey("eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjI1OCIsImV4cCI6MTQ5NTg1NzE5NSwiaXNzIjoiYXV0aDAiLCJ0dGwiOjg2NDAwMDAwMH0.nOVo0pmmmv_WmfU_lo42ff9I0SiaeMXwnoX3JffFbjE", 287);
+			// String genPrivateKey =
+			// genPrivateKey("eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjI1OCIsImV4cCI6MTQ5NTg1NzE5NSwiaXNzIjoiYXV0aDAiLCJ0dGwiOjg2NDAwMDAwMH0.nOVo0pmmmv_WmfU_lo42ff9I0SiaeMXwnoX3JffFbjE",
+			// 287);
 			String genPrivateKey = "2d7f83de58";
 			System.out.println("************ key:" + genPrivateKey);
 			JsonObject jo = JsonObject.create();
 			jo.put("password", "123456");
 			jo.put("new_password", "456789");
 			jo.put("re_new_password", "456789");
-			String string = jo.toString();
-//			String encrypt = encrypt(genPrivateKey, string);
+			// String encrypt = encrypt(genPrivateKey, string);
 			String encrypt = "lstS/edyPbK+ugYafYAoNhb4UrzsD9BR7m+UkNVZMRjjkYjxo83SMuM6gCd19gQW1Xqrp5A6qjS95CwufFUD3E+Jkvtsd54n";
 			System.out.println("*******DATA: " + encrypt);
 
 			System.out.println(decrypt(genPrivateKey, encrypt));
-			String encode = URLEncoder.encode("lstS/edyPbK+ugYafYAoNhb4UrzsD9BR7m+UkNVZMRjjkYjxo83SMuM6gCd19gQW1Xqrp5A6qjS95CwufFUD3E+Jkvtsd54n", "UTF-8");
+			String encode = URLEncoder.encode(
+					"lstS/edyPbK+ugYafYAoNhb4UrzsD9BR7m+UkNVZMRjjkYjxo83SMuM6gCd19gQW1Xqrp5A6qjS95CwufFUD3E+Jkvtsd54n",
+					"UTF-8");
 			System.out.println(encode);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

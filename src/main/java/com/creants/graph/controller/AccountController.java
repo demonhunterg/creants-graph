@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.creants.graph.dao.IUserRepository;
 import com.creants.graph.om.Message;
 import com.creants.graph.om.User;
+import com.creants.graph.service.AccountManager;
 import com.creants.graph.service.CacheService;
 import com.creants.graph.service.MailService;
 import com.creants.graph.service.MessageFactory;
@@ -43,8 +43,7 @@ public class AccountController {
 	private CacheService cacheService;
 
 	@Autowired
-	private IUserRepository userRepository;
-
+	private AccountManager accountManager;
 
 	@PostMapping(path = "signup", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message signup(@RequestParam(value = "username") String username,
@@ -77,7 +76,7 @@ public class AccountController {
 			user.setFullName(username);
 			user.setEmail(email);
 
-			userRepository.insertUser(user);
+			accountManager.insertUser(user);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Tracer.error(this.getClass(),
@@ -88,14 +87,9 @@ public class AccountController {
 		return MessageFactory.createMessage(null);
 	}
 
-
 	@PostMapping(value = "/recovery", produces = "application/json;charset=UTF-8")
 	public @ResponseBody Message forgetPassword(@RequestParam String email,
 			@RequestParam(value = "app_id") String appId) {
-
-//		boolean isExistEmail = userRepository.checkExistEmail(email);
-//		if (!isExistEmail)
-//			return MessageFactory.createErrorMessage(ErrorCode.USER_NOT_FOUND);
 
 		String verifyCode = IdGenerator.randomString(VERIFY_CODE_LENGHT);
 		cacheService.upsert(genVerifyCode(verifyCode), VERIFY_CODE_SECOND_TTL, email.trim());
@@ -108,7 +102,6 @@ public class AccountController {
 		return MessageFactory.createMessage(data);
 	}
 
-
 	@PostMapping(value = "/recovery/verify", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message recoveryVerify(@RequestParam(value = "verify_code") String code) {
 		String email = cacheService.get(VERIFY_CODE_PREFIX + code.trim());
@@ -119,38 +112,32 @@ public class AccountController {
 		return MessageFactory.createMessage(null);
 	}
 
-
 	@PostMapping(value = "/recovery/reset", produces = "application/json; charset=UTF-8")
 	public @ResponseBody Message resetPassword(@RequestParam(value = "verify_code") String code,
 			@RequestParam String password) {
 
 		String email = cacheService.get(genVerifyCode(code));
-		if (email == null) {
+		if (email == null)
 			return MessageFactory.createErrorMessage(ErrorCode.INVALID_VERIFY_CODE);
-		}
 
 		password = password.trim();
-		if (password.length() < 3) {
+		if (password.length() < 3)
 			return MessageFactory.createErrorMessage(ErrorCode.INVALID_PASSWORD);
-		}
 
 		try {
-			int result = userRepository.updatePassword(email, Security.encryptMD5(password));
-			if (result < 1) {
+			boolean result = accountManager.updatePassword(email, Security.encryptMD5(password));
+			if (!result)
 				return MessageFactory.createErrorMessage(ErrorCode.UPDATE_FAIL);
-			}
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			Tracer.error(this.getClass(), "Reset passwors fail!", Tracer.getTraceMessage(e));
 		}
 
 		return MessageFactory.createMessage(null);
 	}
 
-
 	private String genVerifyCode(String code) {
 		return VERIFY_CODE_PREFIX + code.trim();
 	}
-
 
 	private String createMailContent(String verifyCode) {
 		StringBuilder sb = new StringBuilder();
@@ -165,7 +152,6 @@ public class AccountController {
 		sb.append("Best, \n The Creants Team.");
 		return sb.toString();
 	}
-
 
 	private boolean isValidEmailId(String email) {
 		String emailPattern = "\\b[\\w.%-]+@[-.\\w]+\\.[A-Za-z]{2,4}\\b";

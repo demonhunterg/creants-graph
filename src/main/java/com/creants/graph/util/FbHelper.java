@@ -23,7 +23,6 @@ public class FbHelper {
 					Parameter.with("type", "large"), Parameter.with("redirect", "false"));
 
 			JsonObject data = picture.getJsonObject("data");
-
 			User userInfo = new User();
 			userInfo.setAvatar(data.getString("url"));
 			userInfo.setFullName(user.getString("name"));
@@ -36,5 +35,4 @@ public class FbHelper {
 		return null;
 	}
 
-	
 }

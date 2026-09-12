@@ -1,33 +1,44 @@
 package com.creants.graph.om;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.Date;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author LamHa
  *
  */
-@JsonInclude(Include.NON_NULL)
-public class User implements IUser {
+@Document(collection = "account")
+public class User {
+	@Id
 	private long id;
-	private String fullName;
-	@JsonIgnore
+	@Indexed
 	private String username;
-	@JsonIgnore
 	private String password;
+	private String fullName;
 	private String avatar;
 	private int gender;
 	private String location;
 	private String birthday;
-	private Long money;
 	private String email;
-	@JsonIgnore
+	private String provider;
+	private Date createTime;
 	private String deviceId;
+	@Indexed
+	private String clientId;
 
 
 	public User() {
 		location = "vn";
+	}
+
+
+	public User(String deviceId) {
+		super();
+		id = -1;
+		this.deviceId = deviceId;
 	}
 
 
@@ -111,16 +122,6 @@ public class User implements IUser {
 	}
 
 
-	public Long getMoney() {
-		return money;
-	}
-
-
-	public void setMoney(Long money) {
-		this.money = money;
-	}
-
-
 	public String getEmail() {
 		return email;
 	}
@@ -138,6 +139,46 @@ public class User implements IUser {
 
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
+	}
+
+
+	public String getClientId() {
+		return clientId;
+	}
+
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+
+
+	public long getId() {
+		return id;
+	}
+
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
+
+	public String getProvider() {
+		return provider;
+	}
+
+
+	public void setProvider(String provider) {
+		this.provider = provider;
+	}
+
+
+	public Date getCreateTime() {
+		return createTime;
+	}
+
+
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
 	}
 
 }

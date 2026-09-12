@@ -17,7 +17,8 @@ public enum ErrorCode {
 	UPDATE_FAIL(1009, "Update fail"),
 	WRONG_PASSWORD(1010, "Wrong password"),
 	PASSWORD_NOT_MATCH(1011, "Password not match"),
-	LACK_OF_INFO(1012, "Lack of info");
+	LACK_OF_INFO(1012, "Lack of info"),
+	UNKNOW_REASON(5000, "Unknow reason");
 
 	public int id;
 	public String message;
